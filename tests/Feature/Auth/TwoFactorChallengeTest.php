@@ -35,12 +35,10 @@ class TwoFactorChallengeTest extends TestCase
 
         $user = User::factory()->withTwoFactor()->create();
 
-        $this->post(route('login'), [
-            'email' => $user->email,
-            'password' => 'password',
-        ]);
-
-        $this->get(route('two-factor.login'))
+        $this->withSession([
+            'login.id' => $user->id,
+            'login.remember' => false,
+        ])->get(route('two-factor.login'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('auth/TwoFactorChallenge'),

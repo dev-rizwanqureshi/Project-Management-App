@@ -15,9 +15,18 @@ import {
 } from '@/Components/UI/sidebar';
 import UserInfo from '@/Components/UserInfo.vue';
 import UserMenuContent from '@/Components/UserMenuContent.vue';
+import type { User } from '@/types';
 
 const page = usePage();
-const user = computed(() => page.props.auth.user);
+const user = computed<User>(() => {
+    const authUser = page.props.auth.user;
+
+    if (!authUser) {
+        throw new Error('Authenticated user is required for the user menu.');
+    }
+
+    return authUser;
+});
 const { isMobile, state } = useSidebar();
 </script>
 

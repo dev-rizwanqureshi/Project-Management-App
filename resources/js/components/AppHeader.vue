@@ -1,7 +1,18 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, Menu, Search } from '@lucide/vue';
+import {
+    BookOpen,
+    Folder,
+    FolderKanban,
+    LayoutGrid,
+    Menu,
+    Search,
+    ShieldCheck,
+    TicketCheck,
+    Users,
+} from '@lucide/vue';
 import { computed } from 'vue';
+import { route } from 'ziggy-js';
 import AppLogo from '@/Components/AppLogo.vue';
 import AppLogoIcon from '@/Components/AppLogoIcon.vue';
 import Breadcrumbs from '@/Components/Breadcrumbs.vue';
@@ -36,7 +47,7 @@ import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { getInitials } from '@/composables/useInitials';
 import { toUrl } from '@/lib/utils';
 import { dashboard } from '@/routes';
-import type { BreadcrumbItem, NavItem } from '@/types';
+import type { BreadcrumbItem, NavItem, User } from '@/types';
 
 type Props = {
     breadcrumbs?: BreadcrumbItem[];
@@ -47,19 +58,87 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const page = usePage();
-const auth = computed(() => page.props.auth);
+const authUser = computed<User>(() => {
+    const user = page.props.auth.user;
+
+    if (!user) {
+        throw new Error('Authenticated user is required for the app header.');
+    }
+
+    return user;
+});
+const canManageRoles = computed(() =>
+    page.props.auth.permissions.includes('roles.manage'),
+);
+const canViewUsers = computed(() =>
+    page.props.auth.permissions.includes('users.view'),
+);
+const canViewWorkspaces = computed(() =>
+    page.props.auth.permissions.includes('workspaces.view'),
+);
+const canViewBoards = computed(() =>
+    page.props.auth.permissions.includes('boards.view'),
+);
+const canViewCards = computed(() =>
+    page.props.auth.permissions.includes('cards.view'),
+);
 const { isCurrentUrl, whenCurrentUrl } = useCurrentUrl();
 
 const activeItemStyles =
     'text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100';
 
-const mainNavItems: NavItem[] = [
+const mainNavItems = computed<NavItem[]>(() => [
     {
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
     },
-];
+    ...(canViewUsers.value
+        ? [
+              {
+                  title: 'Users',
+                  href: route('users.index'),
+                  icon: Users,
+              },
+          ]
+        : []),
+    ...(canViewWorkspaces.value
+        ? [
+              {
+                  title: 'Workspaces',
+                  href: route('workspaces.index'),
+                  icon: FolderKanban,
+              },
+          ]
+        : []),
+    ...(canViewBoards.value
+        ? [
+              {
+                  title: 'Boards',
+                  href: route('boards.index'),
+                  icon: FolderKanban,
+              },
+          ]
+        : []),
+    ...(canViewCards.value
+        ? [
+              {
+                  title: 'Tickets',
+                  href: route('cards.index'),
+                  icon: TicketCheck,
+              },
+          ]
+        : []),
+    ...(canManageRoles.value
+        ? [
+              {
+                  title: 'Roles & Permissions',
+                  href: route('roles.index'),
+                  icon: ShieldCheck,
+              },
+          ]
+        : []),
+]);
 
 const rightNavItems: NavItem[] = [
     {
@@ -97,7 +176,7 @@ const rightNavItems: NavItem[] = [
                             >
                             <SheetHeader class="flex justify-start text-left">
                                 <AppLogoIcon
-                                    class="size-6 fill-current text-black dark:text-white"
+                                    class="size-6 fill-current text-primary"
                                 />
                             </SheetHeader>
                             <div
@@ -249,20 +328,20 @@ const rightNavItems: NavItem[] = [
                                     class="size-8 overflow-hidden rounded-full"
                                 >
                                     <AvatarImage
-                                        v-if="auth.user.avatar"
-                                        :src="auth.user.avatar"
-                                        :alt="auth.user.name"
+                                        v-if="authUser.avatar"
+                                        :src="authUser.avatar"
+                                        :alt="authUser.name"
                                     />
                                     <AvatarFallback
-                                        class="rounded-lg bg-neutral-200 font-semibold text-black dark:bg-neutral-700 dark:text-white"
+                                        class="rounded-lg bg-primary/10 font-semibold text-primary"
                                     >
-                                        {{ getInitials(auth.user?.name) }}
+                                        {{ getInitials(authUser.name) }}
                                     </AvatarFallback>
                                 </Avatar>
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" class="w-56">
-                            <UserMenuContent :user="auth.user" />
+                            <UserMenuContent :user="authUser" />
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>

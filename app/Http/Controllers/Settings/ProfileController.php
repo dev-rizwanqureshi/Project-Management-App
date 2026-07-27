@@ -3,26 +3,28 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Settings\CompanyProfileUpdateRequest;
 use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\User;
+use App\Repositories\Contracts\SettingsRepositoryInterface;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ProfileController extends Controller
 {
+    public function __construct(
+        private readonly SettingsRepositoryInterface $settingsRepository,
+    ) {}
+
     /**
      * Show the user's profile settings page.
      */
     public function edit(Request $request): Response
     {
-        return Inertia::render('settings/Profile', [
-            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
-            'status' => $request->session()->get('status'),
-        ]);
+        return Inertia::render('settings/Profile', $this->settingsRepository->profilePayload($request));
     }
 
     /**
@@ -30,15 +32,26 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
-        }
+        abort_unless($user instanceof User, 403);
 
-        $request->user()->save();
+        $this->settingsRepository->updateProfile($user, $request->validated());
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Profile updated.')]);
+
+        return to_route('profile.edit');
+    }
+
+    public function updateCompany(CompanyProfileUpdateRequest $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        abort_unless($user instanceof User, 403);
+
+        $this->settingsRepository->updateCompany($user, $request->validated());
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Company updated.')]);
 
         return to_route('profile.edit');
     }
@@ -50,12 +63,9 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        Auth::logout();
+        abort_unless($user instanceof User, 403);
 
-        $user->delete();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        $this->settingsRepository->deleteProfile($user, $request);
 
         return redirect('/');
     }

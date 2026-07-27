@@ -4,9 +4,7 @@
             <div
                 class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8"
             >
-                <span class="text-sm font-semibold"
-                    >Project Management App</span
-                >
+                <span class="text-sm font-semibold">Riraa</span>
                 <slot name="actions" />
             </div>
         </header>

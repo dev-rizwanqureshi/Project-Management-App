@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property bool $is_restricted
+ */
 class Workspace extends Model
 {
     use SoftDeletes;
@@ -23,7 +26,18 @@ class Workspace extends Model
         'description',
         'color',
         'created_by',
+        'is_restricted',
     ];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_restricted' => 'boolean',
+        ];
+    }
 
     protected static function booted(): void
     {
@@ -60,7 +74,7 @@ class Workspace extends Model
      */
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class)
+        return $this->belongsToMany(User::class, 'workspace_user')
             ->withPivot('role')
             ->withTimestamps();
     }

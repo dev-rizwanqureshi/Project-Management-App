@@ -1,17 +1,33 @@
+import type { User as ModelUser } from './models';
+
 export type User = {
-    id: number;
-    name: string;
-    email: string;
-    avatar?: string;
+    [Property in keyof ModelUser]: ModelUser[Property];
+} & {
     email_verified_at: string | null;
     two_factor_enabled?: boolean;
-    created_at: string;
     updated_at: string;
     [key: string]: unknown;
 };
 
 export type Auth = {
-    user: User;
+    user: User | null;
+    permissions: string[];
+};
+
+export type Admin = {
+    id: number;
+    name: string;
+    email: string;
+    role: 'owner' | 'admin' | 'support_staff' | string;
+    admin_role_id?: number | null;
+    created_at?: string | null;
+    updated_at?: string | null;
+    [key: string]: unknown;
+};
+
+export type AdminAuth = {
+    admin: Admin | null;
+    permissions: string[];
 };
 
 /* @chisel-passkeys */

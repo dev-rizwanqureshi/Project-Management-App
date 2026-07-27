@@ -1,7 +1,7 @@
 import type { createHeadManager, Page, Router } from '@inertiajs/core';
 import type { route as ziggyRoute } from 'ziggy-js';
 
-import type { Auth } from '@/types/auth';
+import type { AdminAuth, Auth } from '@/types/auth';
 
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
@@ -21,6 +21,7 @@ declare module '@inertiajs/core' {
         sharedPageProps: {
             name: string;
             auth: Auth;
+            adminAuth: AdminAuth;
             sidebarOpen: boolean;
             [key: string]: unknown;
         };

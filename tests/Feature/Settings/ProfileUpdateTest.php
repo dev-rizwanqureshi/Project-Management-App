@@ -2,8 +2,10 @@
 
 namespace Tests\Feature\Settings;
 
+use App\Models\Company;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class ProfileUpdateTest extends TestCase
@@ -18,7 +20,11 @@ class ProfileUpdateTest extends TestCase
             ->actingAs($user)
             ->get(route('profile.edit'));
 
-        $response->assertOk();
+        $response
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('canUpdateCompany', true)
+            );
     }
 
     public function test_profile_information_can_be_updated()
@@ -61,6 +67,77 @@ class ProfileUpdateTest extends TestCase
         $this->assertNotNull($user->refresh()->email_verified_at);
     }
 
+    public function test_company_owner_can_update_company_details(): void
+    {
+        $company = Company::factory()->create([
+            'name' => 'Old Company',
+            'email' => 'old@example.com',
+        ]);
+        $owner = User::factory()->for($company)->create(['role' => 'owner']);
+
+        $response = $this
+            ->actingAs($owner)
+            ->patch(route('company.profile.update'), [
+                'name' => 'Riraa Studio',
+                'email' => 'hello@riraa.test',
+                'phone' => '+1 555 123 4567',
+                'website' => 'https://riraa.test',
+                'industry' => 'Project management',
+                'team_size' => '11-50',
+                'address_line' => '100 Product Avenue',
+                'city' => 'Austin',
+                'state' => 'Texas',
+                'country' => 'United States',
+                'postal_code' => '78701',
+                'timezone' => 'America/Chicago',
+                'description' => 'Riraa studio company profile.',
+            ]);
+
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('profile.edit'));
+
+        $company->refresh();
+
+        $this->assertSame('Riraa Studio', $company->name);
+        $this->assertSame('hello@riraa.test', $company->email);
+        $this->assertSame('+1 555 123 4567', $company->phone);
+        $this->assertSame('https://riraa.test', $company->website);
+        $this->assertSame('Project management', $company->industry);
+        $this->assertSame('11-50', $company->team_size);
+        $this->assertSame('Austin', $company->city);
+    }
+
+    public function test_company_member_cannot_update_company_details(): void
+    {
+        $company = Company::factory()->create([
+            'name' => 'Original Company',
+            'email' => 'original@example.com',
+        ]);
+        $member = User::factory()->for($company)->create(['role' => 'member']);
+
+        $this
+            ->actingAs($member)
+            ->get(route('profile.edit'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('canUpdateCompany', false)
+            );
+
+        $this
+            ->actingAs($member)
+            ->patch(route('company.profile.update'), [
+                'name' => 'Changed Company',
+                'email' => 'changed@example.com',
+            ])
+            ->assertForbidden();
+
+        $company->refresh();
+
+        $this->assertSame('Original Company', $company->name);
+        $this->assertSame('original@example.com', $company->email);
+    }
+
     public function test_user_can_delete_their_account()
     {
         $user = User::factory()->create();
@@ -76,7 +153,7 @@ class ProfileUpdateTest extends TestCase
             ->assertRedirect(route('welcome'));
 
         $this->assertGuest();
-        $this->assertNull($user->fresh());
+        $this->assertSoftDeleted($user);
     }
 
     public function test_correct_password_must_be_provided_to_delete_account()

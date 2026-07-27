@@ -16,7 +16,7 @@ const user = computed(() => page.props.auth?.user ?? null);
     <Head title="Welcome" />
 
     <main
-        class="min-h-screen border-t-4 border-emerald-500 bg-background text-foreground"
+        class="min-h-screen border-t-4 border-primary bg-background text-foreground"
     >
         <section
             class="mx-auto grid min-h-screen max-w-6xl gap-10 px-6 py-8 lg:grid-cols-[1fr_420px] lg:items-center"
@@ -25,12 +25,12 @@ const user = computed(() => page.props.auth?.user ?? null);
                 <header class="flex items-center justify-between gap-4">
                     <div>
                         <p class="text-sm font-medium text-muted-foreground">
-                            Foundation check
+                            Riraa workspace
                         </p>
                         <h1
                             class="mt-2 text-3xl font-semibold tracking-normal sm:text-4xl"
                         >
-                            Project Management App
+                            Riraa
                         </h1>
                     </div>
 
@@ -51,7 +51,7 @@ const user = computed(() => page.props.auth?.user ?? null);
                             </Link>
                             <Link
                                 :href="registerUrl"
-                                class="rounded-md bg-foreground px-3 py-2 text-sm font-medium text-background hover:opacity-90"
+                                class="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
                             >
                                 Register
                             </Link>
@@ -63,15 +63,15 @@ const user = computed(() => page.props.auth?.user ?? null);
                     <p
                         class="max-w-2xl text-lg leading-8 text-muted-foreground"
                     >
-                        Laravel, Inertia, Vue 3, TypeScript, Pinia, Ziggy,
-                        Axios, and Tailwind are ready for the next build step.
+                        A light, focused project workspace for teams to plan,
+                        track, and move work forward.
                     </p>
 
                     <Link
                         :href="welcomeUrl"
-                        class="inline-flex items-center rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+                        class="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
                     >
-                        Reload with route('welcome')
+                        Open Riraa
                     </Link>
                 </div>
             </div>
@@ -80,7 +80,7 @@ const user = computed(() => page.props.auth?.user ?? null);
                 <div class="mb-4 flex items-center justify-between">
                     <h2 class="text-sm font-semibold">Starter board</h2>
                     <span
-                        class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-800"
+                        class="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary"
                     >
                         Ready
                     </span>
@@ -95,10 +95,10 @@ const user = computed(() => page.props.auth?.user ?? null);
                         </h3>
                         <div class="space-y-2">
                             <div class="rounded-md bg-muted p-3 text-sm">
-                                Database design
+                                Scope planning
                             </div>
                             <div class="rounded-md bg-muted p-3 text-sm">
-                                Auth policies
+                                Team invites
                             </div>
                         </div>
                     </section>
@@ -110,7 +110,7 @@ const user = computed(() => page.props.auth?.user ?? null);
                             In progress
                         </h3>
                         <div class="rounded-md bg-muted p-3 text-sm">
-                            App foundation
+                            Launch board
                         </div>
                     </section>
 
@@ -121,7 +121,7 @@ const user = computed(() => page.props.auth?.user ?? null);
                             Done
                         </h3>
                         <div class="rounded-md bg-muted p-3 text-sm">
-                            Fresh Laravel install
+                            Riraa setup
                         </div>
                     </section>
                 </div>

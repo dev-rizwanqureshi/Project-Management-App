@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property bool $is_restricted
+ */
 class Board extends Model
 {
     use SoftDeletes;
@@ -23,6 +26,7 @@ class Board extends Model
         'is_private',
         'is_archived',
         'created_by',
+        'is_restricted',
     ];
 
     /**
@@ -33,6 +37,7 @@ class Board extends Model
         return [
             'is_private' => 'boolean',
             'is_archived' => 'boolean',
+            'is_restricted' => 'boolean',
         ];
     }
 

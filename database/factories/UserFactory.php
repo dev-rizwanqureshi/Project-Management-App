@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Models\Company;
+use App\Models\CompanyUser;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -17,6 +19,29 @@ class UserFactory extends Factory
      */
     protected static ?string $password;
 
+    public function configure(): static
+    {
+        return $this->afterCreating(function (User $user): void {
+            if (! $user->company_id) {
+                return;
+            }
+
+            CompanyUser::query()->updateOrCreate(
+                [
+                    'company_id' => $user->company_id,
+                    'user_id' => $user->id,
+                ],
+                [
+                    'role' => $user->role,
+                    'role_id' => $user->role_id,
+                    'status' => 'active',
+                    'joined_at' => now(),
+                    'left_at' => null,
+                ],
+            );
+        });
+    }
+
     /**
      * Define the model's default state.
      *
@@ -25,10 +50,13 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
+            'company_id' => Company::factory(),
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
+            'avatar' => null,
+            'role' => 'owner',
             'remember_token' => Str::random(10),
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,

@@ -1,3 +1,4 @@
+import { router } from '@inertiajs/vue3';
 import axios from 'axios';
 import type { AxiosError, AxiosRequestConfig } from 'axios';
 import { route } from 'ziggy-js';
@@ -10,6 +11,15 @@ export type ApiErrorResponse = {
     errors?: Record<string, string[]>;
 };
 
+let sessionExpiredHandler: (() => void) | null = null;
+
+export const setSessionExpiredHandler = (handler: () => void) => {
+    sessionExpiredHandler = handler;
+};
+
+axios.defaults.withCredentials = true;
+axios.defaults.withXSRFToken = true;
+
 const http = axios.create({
     headers: {
         Accept: 'application/json',
@@ -21,7 +31,19 @@ const http = axios.create({
 
 http.interceptors.response.use(
     (response) => response,
-    (error: AxiosError<ApiErrorResponse>) => Promise.reject(error),
+    (error: AxiosError<ApiErrorResponse>) => {
+        const status = error.response?.status;
+
+        if (status === 401 || status === 419) {
+            sessionExpiredHandler?.();
+
+            if (window.location.pathname !== route('login', undefined, false)) {
+                router.visit(route('login'));
+            }
+        }
+
+        return Promise.reject(error);
+    },
 );
 
 export const routeUrl = (

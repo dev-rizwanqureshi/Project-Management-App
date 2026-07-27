@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Admin;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -35,11 +37,27 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+        $admin = $request->user('admin');
+
+        if ($user instanceof User) {
+            $user->loadMissing('company', 'roleDefinition.permissions', 'activeCompanyMembership');
+        }
+
+        if ($admin instanceof Admin) {
+            $admin->loadMissing('adminRole.permissions');
+        }
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user,
+                'permissions' => $user instanceof User ? $user->permissionSlugs() : [],
+            ],
+            'adminAuth' => [
+                'admin' => $admin,
+                'permissions' => $admin instanceof Admin ? $admin->permissionSlugs() : [],
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
