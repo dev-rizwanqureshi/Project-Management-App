@@ -21,9 +21,14 @@ class CompanyMembershipRepository implements CompanyMembershipRepositoryInterfac
             ->first();
     }
 
-    public function joinCompany(User $user, Company $company, string $role, ?Role $roleDefinition = null): CompanyUser
-    {
-        return DB::transaction(function () use ($user, $company, $role, $roleDefinition): CompanyUser {
+    public function joinCompany(
+        User $user,
+        Company $company,
+        string $role,
+        ?Role $roleDefinition = null,
+        bool $isCompanyWide = true,
+    ): CompanyUser {
+        return DB::transaction(function () use ($user, $company, $role, $roleDefinition, $isCompanyWide): CompanyUser {
             $lockedUser = $this->lockedUser($user);
             $activeMembership = $this->lockedActiveMembership($lockedUser);
 
@@ -44,6 +49,7 @@ class CompanyMembershipRepository implements CompanyMembershipRepositoryInterfac
                     'role' => $role,
                     'role_id' => $roleDefinition?->id,
                     'status' => 'active',
+                    'is_company_wide' => $isCompanyWide,
                     'joined_at' => now(),
                     'left_at' => null,
                 ],

@@ -3,6 +3,7 @@
 namespace Tests\Feature\Settings;
 
 use App\Models\Company;
+use App\Models\CompanyUser;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -140,7 +141,16 @@ class ProfileUpdateTest extends TestCase
 
     public function test_user_can_delete_their_account()
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['role' => 'member']);
+        $secondCompany = Company::factory()->create();
+        CompanyUser::query()->create([
+            'company_id' => $secondCompany->id,
+            'user_id' => $user->id,
+            'role' => 'member',
+            'status' => 'active',
+            'is_company_wide' => true,
+            'joined_at' => now(),
+        ]);
 
         $response = $this
             ->actingAs($user)
@@ -154,6 +164,35 @@ class ProfileUpdateTest extends TestCase
 
         $this->assertGuest();
         $this->assertSoftDeleted($user);
+        $this->assertDatabaseHas('company_user', [
+            'user_id' => $user->id,
+            'status' => 'left',
+        ]);
+        $this->assertDatabaseCount('company_user', 2);
+        $this->assertDatabaseMissing('company_user', [
+            'user_id' => $user->id,
+            'status' => 'active',
+        ]);
+    }
+
+    public function test_last_company_owner_cannot_delete_their_account(): void
+    {
+        $owner = User::factory()->create(['role' => 'owner']);
+
+        $this->actingAs($owner)
+            ->from(route('profile.edit'))
+            ->delete(route('profile.destroy'), [
+                'password' => 'password',
+            ])
+            ->assertSessionHasErrors('password')
+            ->assertRedirect(route('profile.edit'));
+
+        $this->assertNotSoftDeleted('users', ['id' => $owner->id]);
+        $this->assertDatabaseHas('company_user', [
+            'user_id' => $owner->id,
+            'role' => 'owner',
+            'status' => 'active',
+        ]);
     }
 
     public function test_correct_password_must_be_provided_to_delete_account()

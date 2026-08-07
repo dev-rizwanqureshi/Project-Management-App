@@ -1,10 +1,7 @@
 <script setup lang="ts">
-import { Link, usePage } from '@inertiajs/vue3';
-import AppLogoIcon from '@/Components/AppLogoIcon.vue';
+import { Link } from '@inertiajs/vue3';
+import RiraaMark from '@/Components/RiraaMark.vue';
 import { welcome } from '@/routes';
-
-const page = usePage();
-const name = page.props.name;
 
 defineProps<{
     title?: string;
@@ -23,10 +20,8 @@ defineProps<{
                 :href="welcome()"
                 class="relative z-20 flex items-center text-lg font-medium"
             >
-                <AppLogoIcon
-                    class="mr-2 size-8 fill-current text-primary-foreground"
-                />
-                {{ name }}
+                <RiraaMark class="mr-3" />
+                <span>riraa</span>
             </Link>
         </div>
         <div class="lg:p-8">

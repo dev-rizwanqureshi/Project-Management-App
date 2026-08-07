@@ -16,8 +16,9 @@ import type { Component } from 'vue';
 import { computed } from 'vue';
 import { route } from 'ziggy-js';
 
-import AppLogoIcon from '@/Components/AppLogoIcon.vue';
+import RiraaMark from '@/Components/RiraaMark.vue';
 import { Button } from '@/Components/UI/button';
+import { Toaster } from '@/Components/UI/sonner';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import type { Admin } from '@/types/auth';
 
@@ -33,7 +34,6 @@ type AdminNavItem = {
 const page = usePage();
 const { isCurrentUrl, isCurrentOrParentUrl } = useCurrentUrl();
 const admin = computed<Admin | null>(() => page.props.adminAuth.admin);
-const appName = computed(() => String(page.props.name ?? 'Riraa'));
 const permissions = computed(() => page.props.adminAuth.permissions);
 
 const roleName = computed(() => {
@@ -145,13 +145,9 @@ const logout = () => {
                     :href="route('admin.dashboard')"
                     class="mb-8 flex items-center gap-3 rounded-md px-2"
                 >
-                    <div
-                        class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
-                    >
-                        <AppLogoIcon class="size-7 fill-current" />
-                    </div>
-                    <span class="truncate text-lg font-semibold">
-                        {{ appName }}
+                    <RiraaMark class="size-11 rounded-[14px]" />
+                    <span class="truncate text-lg font-semibold lowercase">
+                        riraa
                     </span>
                 </Link>
 
@@ -245,9 +241,10 @@ const logout = () => {
                 </div>
             </header>
 
-            <main class="min-w-0 flex-1">
+            <main class="riraa-app-page min-w-0 flex-1">
                 <slot />
             </main>
         </div>
+        <Toaster />
     </div>
 </template>

@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import { Head, router } from '@inertiajs/vue3';
-import { Search, Users } from '@lucide/vue';
-import { ref } from 'vue';
+import { Head, router, useForm, usePage } from '@inertiajs/vue3';
+import { MailPlus, Search, Users } from '@lucide/vue';
+import { computed, ref, watch } from 'vue';
 import { route } from 'ziggy-js';
 
 import PaginationControls from '@/Components/Admin/PaginationControls.vue';
+import InputError from '@/Components/InputError.vue';
 import { Button } from '@/Components/UI/button';
 import { Input } from '@/Components/UI/input';
+import { Label } from '@/Components/UI/label';
+import type { ProjectContext } from '@/types';
 
 type UserRow = {
     id: number;
@@ -41,8 +44,60 @@ const props = defineProps<{
     sort: SortState;
 }>();
 
+const page = usePage();
 const search = ref(props.filters.search);
 const perPage = ref(String(props.filters.per_page));
+const showInviteForm = ref(false);
+const inviteForm = useForm({
+    email: '',
+    scope: 'company',
+    workspace_id: null as number | null,
+    board_id: null as number | null,
+    role: 'member',
+});
+
+const projectContext = computed(
+    () => page.props.projectContext as ProjectContext | null,
+);
+const canInvite = computed(() =>
+    page.props.auth.permissions.includes('users.manage'),
+);
+const workspaces = computed(() => projectContext.value?.workspaces ?? []);
+const boards = computed(
+    () =>
+        workspaces.value.find(
+            (workspace) => workspace.id === inviteForm.workspace_id,
+        )?.boards ?? [],
+);
+
+watch(
+    () => inviteForm.scope,
+    (scope) => {
+        if (scope === 'company') {
+            inviteForm.workspace_id = null;
+            inviteForm.board_id = null;
+            inviteForm.role = 'member';
+        }
+
+        if (scope === 'workspace') {
+            inviteForm.board_id = null;
+            inviteForm.role = 'member';
+        }
+
+        if (scope === 'board') {
+            inviteForm.role = 'member';
+        }
+    },
+);
+
+watch(
+    () => inviteForm.workspace_id,
+    () => {
+        if (!boards.value.some((board) => board.id === inviteForm.board_id)) {
+            inviteForm.board_id = null;
+        }
+    },
+);
 
 const formatDate = (value: string | null) =>
     value
@@ -81,24 +136,143 @@ const applyFilters = () => {
         { preserveScroll: true, preserveState: true, replace: true },
     );
 };
+
+const submitInvitation = () => {
+    inviteForm.post(route('invitations.store'), {
+        preserveScroll: true,
+        onSuccess: () => {
+            inviteForm.reset();
+            inviteForm.scope = 'company';
+            showInviteForm.value = false;
+        },
+    });
+};
 </script>
 
 <template>
     <Head title="Users" />
 
     <section class="flex h-full flex-1 flex-col gap-6 p-4 sm:p-6">
-        <div>
-            <p class="text-sm font-medium text-primary">Company listing</p>
-            <h1
-                class="mt-1 flex items-center gap-2 text-2xl font-semibold tracking-normal"
+        <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+                <p class="text-sm font-medium text-primary">Company listing</p>
+                <h1
+                    class="mt-1 flex items-center gap-2 text-2xl font-semibold tracking-normal"
+                >
+                    <Users class="size-6 text-primary" />
+                    Users
+                </h1>
+                <p class="mt-2 text-sm text-muted-foreground">
+                    View company users and the work they created.
+                </p>
+            </div>
+            <Button
+                v-if="canInvite"
+                type="button"
+                variant="outline"
+                @click="showInviteForm = !showInviteForm"
             >
-                <Users class="size-6 text-primary" />
-                Users
-            </h1>
-            <p class="mt-2 text-sm text-muted-foreground">
-                View company users and the work they created.
-            </p>
+                <MailPlus class="size-4" />
+                {{ showInviteForm ? 'Close invite' : 'Invite user' }}
+            </Button>
         </div>
+
+        <form
+            v-if="showInviteForm"
+            class="grid gap-4 rounded-lg border border-primary/20 bg-primary/5 p-4 shadow-sm sm:grid-cols-2"
+            @submit.prevent="submitInvitation"
+        >
+            <div class="grid gap-2 sm:col-span-2">
+                <Label for="invite-email">Email address</Label>
+                <Input
+                    id="invite-email"
+                    v-model="inviteForm.email"
+                    type="email"
+                    required
+                    placeholder="teammate@example.com"
+                />
+                <InputError :message="inviteForm.errors.email" />
+            </div>
+
+            <div class="grid gap-2">
+                <Label for="invite-scope">Invite to</Label>
+                <select
+                    id="invite-scope"
+                    v-model="inviteForm.scope"
+                    class="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                >
+                    <option value="company">Company</option>
+                    <option value="workspace">Workspace</option>
+                    <option value="board">Board</option>
+                </select>
+                <InputError :message="inviteForm.errors.scope" />
+            </div>
+
+            <div class="grid gap-2">
+                <Label for="invite-role">Role</Label>
+                <select
+                    id="invite-role"
+                    v-model="inviteForm.role"
+                    class="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                >
+                    <option v-if="inviteForm.scope === 'company'" value="admin">
+                        Company admin
+                    </option>
+                    <option value="member">Member</option>
+                    <option value="guest">Viewer</option>
+                </select>
+                <InputError :message="inviteForm.errors.role" />
+            </div>
+
+            <div v-if="inviteForm.scope !== 'company'" class="grid gap-2">
+                <Label for="invite-workspace">Workspace</Label>
+                <select
+                    id="invite-workspace"
+                    v-model="inviteForm.workspace_id"
+                    class="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                    required
+                >
+                    <option :value="null">Choose a workspace</option>
+                    <option
+                        v-for="workspace in workspaces"
+                        :key="workspace.id"
+                        :value="workspace.id"
+                    >
+                        {{ workspace.name }}
+                    </option>
+                </select>
+                <InputError :message="inviteForm.errors.workspace_id" />
+            </div>
+
+            <div v-if="inviteForm.scope === 'board'" class="grid gap-2">
+                <Label for="invite-board">Board</Label>
+                <select
+                    id="invite-board"
+                    v-model="inviteForm.board_id"
+                    class="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                    required
+                >
+                    <option :value="null">Choose a board</option>
+                    <option
+                        v-for="board in boards"
+                        :key="board.id"
+                        :value="board.id"
+                    >
+                        {{ board.name }}
+                    </option>
+                </select>
+                <InputError :message="inviteForm.errors.board_id" />
+            </div>
+
+            <div class="flex items-end sm:col-span-2">
+                <Button type="submit" :disabled="inviteForm.processing">
+                    <MailPlus class="size-4" />
+                    {{
+                        inviteForm.processing ? 'Sending...' : 'Send invitation'
+                    }}
+                </Button>
+            </div>
+        </form>
 
         <div class="rounded-lg border border-border bg-card shadow-sm">
             <form
@@ -120,6 +294,7 @@ const applyFilters = () => {
                             v-model="search"
                             class="w-72 pl-9"
                             placeholder="Name, email, role"
+                            @keydown.enter.prevent="applyFilters"
                         />
                     </div>
                 </div>

@@ -11,7 +11,13 @@ interface CompanyMembershipRepositoryInterface
 {
     public function activeMembership(User $user): ?CompanyUser;
 
-    public function joinCompany(User $user, Company $company, string $role, ?Role $roleDefinition = null): CompanyUser;
+    public function joinCompany(
+        User $user,
+        Company $company,
+        string $role,
+        ?Role $roleDefinition = null,
+        bool $isCompanyWide = true,
+    ): CompanyUser;
 
     public function leaveActiveCompany(User $user): void;
 }

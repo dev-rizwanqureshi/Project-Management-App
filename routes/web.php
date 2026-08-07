@@ -9,8 +9,10 @@ use App\Http\Controllers\Admin\AdminStaffManagementController;
 use App\Http\Controllers\Admin\AdminUserManagementController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CompanyListingController;
+use App\Http\Controllers\CompanyProjectController;
 use App\Http\Controllers\CompanySetupController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\RoleManagementController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
@@ -42,7 +44,13 @@ Route::middleware('guest:web,admin')->group(function () {
     Route::post('login', [AuthController::class, 'login'])->name('login.store');
 });
 
-Route::get('profile', [AuthController::class, 'profile'])->name('profile.show');
+Route::get('invitations/{token}', [InvitationController::class, 'show'])
+    ->name('invitations.show');
+
+Route::middleware('guest')->group(function () {
+    Route::post('invitations/{token}/register', [InvitationController::class, 'register'])
+        ->name('invitations.register');
+});
 
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware('guest:admin,web')->group(function () {
@@ -140,15 +148,45 @@ Route::middleware('auth')->group(function () {
     Route::get('users', [CompanyListingController::class, 'users'])
         ->middleware('permission:users.view')
         ->name('users.index');
+    Route::post('invitations', [InvitationController::class, 'store'])
+        ->middleware('permission:users.manage')
+        ->name('invitations.store');
     Route::get('workspaces', [CompanyListingController::class, 'workspaces'])
         ->middleware('permission:workspaces.view')
         ->name('workspaces.index');
+    Route::post('workspaces', [CompanyProjectController::class, 'storeWorkspace'])
+        ->middleware('permission:workspaces.manage')
+        ->name('workspaces.store');
     Route::get('boards', [CompanyListingController::class, 'boards'])
         ->middleware('permission:boards.view')
         ->name('boards.index');
+    Route::post('boards', [CompanyProjectController::class, 'storeBoard'])
+        ->middleware('permission:boards.manage')
+        ->name('boards.store');
+    Route::get('boards/{board}', [CompanyProjectController::class, 'showBoard'])
+        ->middleware('permission:boards.view')
+        ->name('boards.show');
+    Route::get('boards/{board}/tickets/{card}', [CompanyProjectController::class, 'showCard'])
+        ->middleware('permission:cards.view')
+        ->name('boards.cards.show');
+    Route::post('boards/{board}/tickets', [CompanyProjectController::class, 'storeCard'])
+        ->middleware('permission:cards.manage')
+        ->name('boards.cards.store');
+    Route::patch('boards/{board}/tickets/{card}/move', [CompanyProjectController::class, 'moveCard'])
+        ->middleware('permission:cards.manage')
+        ->name('boards.cards.move');
+    Route::post('boards/{board}/tickets/{card}/comments', [CompanyProjectController::class, 'storeComment'])
+        ->middleware('permission:cards.manage')
+        ->name('boards.cards.comments.store');
+    Route::get('boards/{board}/tickets/{card}/attachments/{attachment}', [CompanyProjectController::class, 'downloadAttachment'])
+        ->middleware('permission:cards.view')
+        ->name('boards.cards.attachments.download');
     Route::get('tickets', [CompanyListingController::class, 'cards'])
         ->middleware('permission:cards.view')
         ->name('cards.index');
+
+    Route::post('invitations/{token}/accept', [InvitationController::class, 'accept'])
+        ->name('invitations.accept');
 
     Route::get('roles', [RoleManagementController::class, 'index'])
         ->middleware('permission:roles.manage')

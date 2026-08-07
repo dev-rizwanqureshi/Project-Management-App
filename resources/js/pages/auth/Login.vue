@@ -18,6 +18,10 @@ defineOptions({
     layout: GuestLayout,
 });
 
+const props = defineProps<{
+    invitationToken?: string | null;
+}>();
+
 const authStore = useAuthStore();
 const form = reactive<LoginCredentials>({
     email: '',
@@ -37,7 +41,11 @@ const submit = async () => {
     const result = await authStore.login({ ...form });
 
     if (result.success) {
-        router.visit(route('dashboard'));
+        router.visit(
+            props.invitationToken
+                ? route('invitations.show', props.invitationToken)
+                : route('dashboard'),
+        );
 
         return;
     }

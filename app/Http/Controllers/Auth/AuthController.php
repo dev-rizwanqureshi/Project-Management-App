@@ -8,6 +8,7 @@ use App\Http\Requests\Auth\RegisterCompanyRequest;
 use App\Http\Resources\UserResource;
 use App\Services\Contracts\AuthServiceInterface;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
@@ -46,9 +47,11 @@ class AuthController extends Controller
         }
     }
 
-    public function showLogin(): Response
+    public function showLogin(Request $request): Response
     {
-        return Inertia::render('auth/Login');
+        return Inertia::render('auth/Login', [
+            'invitationToken' => $request->query('invitation'),
+        ]);
     }
 
     public function login(LoginRequest $request): JsonResponse
@@ -64,27 +67,16 @@ class AuthController extends Controller
         ]);
     }
 
-    public function logout(Request $request): JsonResponse
+    public function logout(Request $request): JsonResponse|RedirectResponse
     {
         $this->authService->logout($request);
 
-        return response()->json([
-            'message' => 'Logged out successfully',
-        ]);
-    }
-
-    public function profile(Request $request): JsonResponse
-    {
-        $user = $this->authService->getProfile();
-
-        if (! $user) {
-            return response()->json([
-                'user' => null,
-            ]);
+        if ($request->header('X-Inertia')) {
+            return redirect()->route('login');
         }
 
         return response()->json([
-            'user' => UserResource::make($user)->resolve($request),
+            'message' => 'Logged out successfully',
         ]);
     }
 }

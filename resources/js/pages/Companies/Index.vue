@@ -120,6 +120,7 @@ const applyFilters = () => {
                             v-model="search"
                             class="w-72 pl-9"
                             placeholder="Name or email"
+                            @keydown.enter.prevent="applyFilters"
                         />
                     </div>
                 </div>

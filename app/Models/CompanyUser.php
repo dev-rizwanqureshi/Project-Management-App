@@ -13,6 +13,7 @@ use Illuminate\Support\Carbon;
  * @property string $role
  * @property int|null $role_id
  * @property string $status
+ * @property bool $is_company_wide
  * @property Carbon|null $joined_at
  * @property Carbon|null $left_at
  */
@@ -29,6 +30,7 @@ class CompanyUser extends Model
         'role',
         'role_id',
         'status',
+        'is_company_wide',
         'joined_at',
         'left_at',
     ];
@@ -41,6 +43,7 @@ class CompanyUser extends Model
         return [
             'joined_at' => 'datetime',
             'left_at' => 'datetime',
+            'is_company_wide' => 'boolean',
         ];
     }
 

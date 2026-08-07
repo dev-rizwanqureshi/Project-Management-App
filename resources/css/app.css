@@ -92,6 +92,172 @@
 }
 
 @layer components {
+    html.dark body:has([data-riraa-shell]) {
+        --background: hsl(270 34% 10%);
+        --foreground: hsl(270 25% 95%);
+        --card: hsl(270 16% 17%);
+        --card-foreground: hsl(270 25% 95%);
+        --popover: hsl(270 16% 17%);
+        --popover-foreground: hsl(270 25% 95%);
+        --primary: hsl(347 85% 62%);
+        --primary-foreground: hsl(0 0% 100%);
+        --secondary: hsl(270 12% 20%);
+        --secondary-foreground: hsl(270 25% 95%);
+        --muted: hsl(270 12% 14%);
+        --muted-foreground: hsl(270 10% 60%);
+        --accent: hsl(270 12% 23%);
+        --accent-foreground: hsl(270 25% 95%);
+        --border: hsl(270 11% 27%);
+        --input: hsl(270 11% 29%);
+        --ring: hsl(347 85% 62%);
+        --chart-1: hsl(347 85% 62%);
+        --chart-2: hsl(170 55% 75%);
+        --chart-3: hsl(335 80% 84%);
+        --chart-4: hsl(38 88% 66%);
+        --chart-5: hsl(258 72% 82%);
+        --sidebar-background: hsl(270 12% 13%);
+        --sidebar-foreground: hsl(270 25% 95%);
+        --sidebar-primary: hsl(347 85% 62%);
+        --sidebar-primary-foreground: hsl(0 0% 100%);
+        --sidebar-accent: hsl(270 12% 23%);
+        --sidebar-accent-foreground: hsl(270 25% 95%);
+        --sidebar-border: hsl(270 11% 27%);
+        --sidebar-ring: hsl(347 85% 62%);
+        --sidebar: hsl(270 12% 13%);
+        background: #17151c;
+        color: #f5f1f5;
+        color-scheme: dark;
+    }
+
+    html.dark body:has([data-riraa-shell]) .riraa-app-page,
+    html.dark body:has([data-riraa-shell]) [data-slot='sidebar-inset'] {
+        background: #17151c;
+        color: #f5f1f5;
+    }
+
+    html.dark body:has([data-riraa-shell]) [data-sidebar='sidebar'] {
+        border-color: #3b3742 !important;
+        background: #201e25 !important;
+        color: #f5f1f5 !important;
+    }
+
+    html.dark body:has([data-riraa-shell]) [data-sidebar='content'],
+    html.dark body:has([data-riraa-shell]) [data-sidebar='header'],
+    html.dark body:has([data-riraa-shell]) [data-sidebar='footer'] {
+        background: #201e25 !important;
+    }
+
+    html.dark body:has([data-riraa-shell]) [data-sidebar='separator'] {
+        background: #3b3742 !important;
+    }
+
+    html.dark body:has([data-riraa-shell]) [data-sidebar='group-label'] {
+        color: #847d8b !important;
+    }
+
+    html.dark body:has([data-riraa-shell]) [data-sidebar='menu-button'] {
+        color: #aaa3ad !important;
+    }
+
+    html.dark body:has([data-riraa-shell]) [data-sidebar='menu-button']:hover,
+    html.dark body:has([data-riraa-shell]) [data-sidebar='menu-sub-button']:hover {
+        background: #2b2831 !important;
+        color: #fff !important;
+    }
+
+    html.dark body:has([data-riraa-shell]) [data-sidebar='menu-button'][data-size='lg'],
+    html.dark body:has([data-riraa-shell]) [data-sidebar='menu-button'][data-size='lg'][data-state='open'] {
+        background: #201e25 !important;
+        color: #f5f1f5 !important;
+    }
+
+    html.dark body:has([data-riraa-shell]) [data-sidebar='menu-button'][data-active='true'],
+    html.dark body:has([data-riraa-shell]) [data-sidebar='menu-sub-button'][data-active='true'] {
+        background: #393640 !important;
+        color: #fff !important;
+    }
+
+    html.dark body:has([data-riraa-shell]) [data-sidebar='menu-sub-button'] {
+        color: #9b94a1 !important;
+    }
+
+    html.dark body:has([data-riraa-shell]) [data-sidebar='menu-button'] .text-muted-foreground,
+    html.dark body:has([data-riraa-shell]) [data-sidebar='menu-sub-button'] .text-muted-foreground {
+        color: #8e8795 !important;
+    }
+
+    html.dark body:has([data-riraa-shell]) .riraa-app-header {
+        border-color: #3b3742 !important;
+        background: #17151c !important;
+        color: #f5f1f5 !important;
+    }
+
+    html.dark body:has([data-riraa-shell]) .riraa-app-header .riraa-search-link {
+        border-color: #3b3742 !important;
+        background: #25232b !important;
+        color: #918a97 !important;
+    }
+
+    html.dark body:has([data-riraa-shell]) .riraa-app-header .riraa-search-link kbd {
+        border-color: #4a4452 !important;
+        background: #34303a !important;
+        color: #c1bbc6 !important;
+    }
+
+    html.dark body:has([data-riraa-shell]) .riraa-app-header .riraa-search-link:hover,
+    html.dark body:has([data-riraa-shell]) .riraa-app-header button:hover,
+    html.dark body:has([data-riraa-shell]) .riraa-app-header [data-sidebar='trigger']:hover {
+        border-color: #635b6b !important;
+        background: #2b2831 !important;
+        color: #fff !important;
+    }
+
+    html.dark body:has([data-riraa-shell]) .riraa-app-header [data-slot='breadcrumb-page'] {
+        color: #f5f1f5 !important;
+    }
+
+    html.dark body:has([data-riraa-shell]) .riraa-app-header [data-slot='breadcrumb-separator'],
+    html.dark body:has([data-riraa-shell]) .riraa-app-header [data-sidebar='trigger'],
+    html.dark body:has([data-riraa-shell]) .riraa-app-header .riraa-top-context [class~='text-[#30343b]'] {
+        color: #8f8895 !important;
+    }
+
+    html.dark body:has([data-riraa-shell]) .riraa-app-page [class~='bg-white'] {
+        background: #2a2830 !important;
+    }
+
+    html.dark body:has([data-riraa-shell]) .riraa-app-page [class~='bg-muted\/25'],
+    html.dark body:has([data-riraa-shell]) .riraa-app-page [class~='bg-muted\/20'] {
+        background: #211f26 !important;
+    }
+
+    html.dark body:has([data-riraa-shell]) .riraa-app-page [class~='border-white'] {
+        border-color: #423d47 !important;
+    }
+
+    body:has(.riraa-dashboard) [data-slot='sidebar'][data-state] [data-sidebar='sidebar'] {
+        background: #ffffff;
+        color: #525b67;
+    }
+
+    body:has(.riraa-dashboard) [data-slot='sidebar'][data-state] [data-sidebar='content'] {
+        background: #fbfbfc;
+    }
+
+    body:has(.riraa-dashboard) [data-slot='sidebar'][data-state] [data-slot='sidebar-group-label'] {
+        color: #9aa1aa;
+    }
+
+    body:has(.riraa-dashboard) [data-slot='sidebar'][data-state] [data-slot='sidebar-menu-button'] {
+        color: #5c6672;
+    }
+
+    body:has(.riraa-dashboard) [data-slot='sidebar'][data-state] [data-slot='sidebar-menu-button'][data-active='true'],
+    body:has(.riraa-dashboard) [data-slot='sidebar'][data-state] [data-slot='sidebar-menu-sub-button'][data-active='true'] {
+        background: #edf2ff;
+        color: #2563eb;
+    }
+
     .riraa-select {
         @apply h-9 cursor-pointer appearance-none rounded-md border border-input bg-background bg-no-repeat px-3 pr-10 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%236b5a82' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
@@ -196,6 +362,118 @@
         @apply border-border outline-ring/50;
     }
     body {
-        @apply bg-background text-foreground;
+        @apply bg-background text-foreground antialiased;
+        line-height: 1.5;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+        line-height: 1.25;
+    }
+}
+
+@keyframes riraa-page-enter {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes riraa-soft-pulse {
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 hsl(221 83% 58% / 0);
+    }
+
+    50% {
+        box-shadow: 0 0 0 6px hsl(221 83% 58% / 0.08);
+    }
+}
+
+@keyframes riraa-typing-caret {
+    0%,
+    45% {
+        opacity: 1;
+    }
+
+    46%,
+    100% {
+        opacity: 0;
+    }
+}
+
+@layer components {
+    .riraa-app-page > :first-child,
+    .riraa-page-enter {
+        animation: riraa-page-enter 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .riraa-app-page h1,
+    .riraa-gradient-heading {
+        display: inline-block;
+        width: fit-content;
+        max-width: 100%;
+        background-image: linear-gradient(
+            100deg,
+            hsl(263 72% 52%),
+            hsl(221 83% 54%),
+            hsl(188 72% 38%)
+        );
+        background-clip: text;
+        color: transparent;
+    }
+
+    .dark .riraa-app-page h1,
+    .dark .riraa-gradient-heading {
+        background-image: linear-gradient(
+            100deg,
+            hsl(265 86% 76%),
+            hsl(221 83% 70%),
+            hsl(188 72% 64%)
+        );
+    }
+
+    .riraa-hero-heading {
+        background-image: linear-gradient(
+            100deg,
+            hsl(270 100% 88%),
+            hsl(246 100% 82%),
+            hsl(188 100% 78%)
+        );
+    }
+
+    .riraa-lift {
+        @apply transition duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md;
+    }
+
+    .riraa-typing-caret {
+        animation: riraa-typing-caret 900ms steps(1, end) infinite;
+    }
+
+    [data-sonner-toast][data-type='success'] {
+        animation: riraa-soft-pulse 800ms ease-out 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .riraa-app-page > :first-child,
+    .riraa-page-enter,
+    .riraa-typing-caret,
+    [data-sonner-toast][data-type='success'] {
+        animation: none;
+    }
+
+    *,
+    ::before,
+    ::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
     }
 }

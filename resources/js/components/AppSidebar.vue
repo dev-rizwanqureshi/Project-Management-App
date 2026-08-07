@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
 import {
-    BookOpen,
-    FolderGit2,
-    FolderKanban,
-    LayoutGrid,
+    BriefcaseBusiness,
+    LayoutDashboard,
     ShieldCheck,
     TicketCheck,
     Users,
@@ -12,17 +10,20 @@ import {
 import { computed } from 'vue';
 import { route } from 'ziggy-js';
 import AppLogo from '@/Components/AppLogo.vue';
-import NavFooter from '@/Components/NavFooter.vue';
 import NavMain from '@/Components/NavMain.vue';
 import NavUser from '@/Components/NavUser.vue';
+import ProjectNavigation from '@/Components/ProjectNavigation.vue';
 import {
     Sidebar,
     SidebarContent,
     SidebarFooter,
+    SidebarGroup,
+    SidebarGroupLabel,
     SidebarHeader,
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    SidebarSeparator,
 } from '@/Components/UI/sidebar';
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
@@ -34,85 +35,21 @@ const canManageRoles = computed(() =>
 const canViewUsers = computed(() =>
     page.props.auth.permissions.includes('users.view'),
 );
-const canViewWorkspaces = computed(() =>
-    page.props.auth.permissions.includes('workspaces.view'),
-);
-const canViewBoards = computed(() =>
-    page.props.auth.permissions.includes('boards.view'),
-);
 const canViewCards = computed(() =>
     page.props.auth.permissions.includes('cards.view'),
 );
 const mainNavItems = computed<NavItem[]>(() => [
     {
-        title: 'Dashboard',
+        title: 'For you',
         href: dashboard(),
-        icon: LayoutGrid,
+        icon: LayoutDashboard,
     },
-    ...(canViewUsers.value
-        ? [
-              {
-                  title: 'Users',
-                  href: route('users.index'),
-                  icon: Users,
-              },
-          ]
-        : []),
-    ...(canViewWorkspaces.value
-        ? [
-              {
-                  title: 'Workspaces',
-                  href: route('workspaces.index'),
-                  icon: FolderKanban,
-              },
-          ]
-        : []),
-    ...(canViewBoards.value
-        ? [
-              {
-                  title: 'Boards',
-                  href: route('boards.index'),
-                  icon: FolderKanban,
-              },
-          ]
-        : []),
-    ...(canViewCards.value
-        ? [
-              {
-                  title: 'Tickets',
-                  href: route('cards.index'),
-                  icon: TicketCheck,
-              },
-          ]
-        : []),
-    ...(canManageRoles.value
-        ? [
-              {
-                  title: 'Roles & Permissions',
-                  href: route('roles.index'),
-                  icon: ShieldCheck,
-              },
-          ]
-        : []),
 ]);
-
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/vue-starter-kit',
-        icon: FolderGit2,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#vue',
-        icon: BookOpen,
-    },
-];
 </script>
 
 <template>
-    <Sidebar collapsible="icon" variant="inset">
-        <SidebarHeader>
+    <Sidebar collapsible="offcanvas" variant="sidebar" data-riraa-shell class="border-r border-[#e5e7eb]">
+        <SidebarHeader class="border-b border-[#e5e7eb] px-3 py-3">
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton size="lg" as-child>
@@ -124,14 +61,87 @@ const footerNavItems: NavItem[] = [
             </SidebarMenu>
         </SidebarHeader>
 
-        <SidebarContent>
-            <NavMain :items="mainNavItems" />
+        <SidebarContent class="bg-[#fbfbfc] px-2 py-3">
+            <NavMain :items="mainNavItems" label="Workspace" />
+            <SidebarSeparator class="my-3 bg-[#e5e7eb]" />
+            <SidebarGroup class="px-2 py-0">
+                <SidebarGroupLabel>Manage</SidebarGroupLabel>
+                <SidebarMenu>
+                    <SidebarMenuItem v-if="canViewUsers">
+                        <SidebarMenuButton as-child tooltip="People">
+                            <Link :href="route('users.index')">
+                                <Users />
+                                <span>People</span>
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem v-if="canViewCards">
+                        <SidebarMenuButton as-child tooltip="All tickets">
+                            <Link :href="route('cards.index')">
+                                <TicketCheck />
+                                <span>All tickets</span>
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem v-if="canManageRoles">
+                        <SidebarMenuButton as-child tooltip="Roles & permissions">
+                            <Link :href="route('roles.index')">
+                                <ShieldCheck />
+                                <span>Roles &amp; permissions</span>
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarGroup>
+            <SidebarSeparator class="my-3 bg-[#e5e7eb]" />
+            <SidebarGroup class="px-2 py-0">
+                <SidebarGroupLabel>Company</SidebarGroupLabel>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton as-child tooltip="Company overview">
+                            <Link :href="dashboard()">
+                                <BriefcaseBusiness />
+                                <span>Company overview</span>
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarGroup>
+            <ProjectNavigation />
         </SidebarContent>
 
         <SidebarFooter>
-            <NavFooter :items="footerNavItems" />
             <NavUser />
         </SidebarFooter>
     </Sidebar>
     <slot />
 </template>
+
+<style scoped>
+[data-riraa-shell] :deep([data-sidebar='sidebar']) {
+    background: #fff;
+    color: #525b67;
+}
+
+[data-riraa-shell] :deep([data-sidebar='content']) {
+    background: #fbfbfc;
+}
+
+[data-riraa-shell] :deep([data-sidebar='group-label']) {
+    color: #9aa1aa;
+}
+
+[data-riraa-shell] :deep([data-slot='sidebar-menu-button']) {
+    color: #5c6672;
+}
+
+[data-riraa-shell] :deep([data-slot='sidebar-menu-button'][data-active='true']) {
+    background: #edf2ff;
+    color: #2563eb;
+}
+
+[data-riraa-shell] :deep([data-slot='sidebar-menu-sub-button'][data-active='true']) {
+    color: #2563eb;
+    background: #f1f5ff;
+}
+</style>

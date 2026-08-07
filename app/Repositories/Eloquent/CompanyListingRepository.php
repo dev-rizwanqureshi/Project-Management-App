@@ -85,9 +85,20 @@ class CompanyListingRepository implements CompanyListingRepositoryInterface
             ->where('users.is_restricted', false)
             ->with('company:id,name,slug')
             ->withCount([
-                'createdWorkspaces as workspaces_count',
-                'createdBoards as boards_count',
-                'createdCards as tickets_count',
+                'createdWorkspaces as workspaces_count' => fn ($query) => $query
+                    ->where('workspaces.company_id', $user->company_id),
+                'createdBoards as boards_count' => fn ($query) => $query
+                    ->whereHas(
+                        'workspace',
+                        fn ($workspaceQuery) => $workspaceQuery
+                            ->where('company_id', $user->company_id),
+                    ),
+                'createdCards as tickets_count' => fn ($query) => $query
+                    ->whereHas(
+                        'list.board.workspace',
+                        fn ($workspaceQuery) => $workspaceQuery
+                            ->where('company_id', $user->company_id),
+                    ),
             ]);
 
         $this->searchColumns($query, $filters['search'], [
@@ -139,8 +150,9 @@ class CompanyListingRepository implements CompanyListingRepositoryInterface
             ->leftJoin('users as creators', 'creators.id', '=', 'workspaces.created_by')
             ->with(['company:id,name,slug', 'creator:id,name,email'])
             ->withCount('users')
-            ->selectSub($this->workspaceBoardsCountSubquery(), 'boards_count')
-            ->selectSub($this->workspaceTicketsCountSubquery(), 'tickets_count');
+            ->selectSub($this->workspaceBoardsCountSubquery($user), 'boards_count')
+            ->selectSub($this->workspaceTicketsCountSubquery($user), 'tickets_count');
+        $this->applyWorkspaceAccess($query, $user, 'workspaces.id');
 
         $this->searchColumns($query, $filters['search'], [
             'workspaces.name',
@@ -175,6 +187,7 @@ class CompanyListingRepository implements CompanyListingRepositoryInterface
     public function boards(User $user, Request $request): array
     {
         $filters = $this->filters($request);
+        $workspaceId = max(0, $request->integer('workspace_id'));
         $sort = $this->sort($request, [
             'name',
             'workspace_name',
@@ -194,6 +207,11 @@ class CompanyListingRepository implements CompanyListingRepositoryInterface
             ->with(['creator:id,name,email', 'workspace:id,company_id,name'])
             ->withCount('users')
             ->selectSub($this->boardTicketsCountSubquery(), 'tickets_count');
+        $this->applyBoardAccess($query, $user, 'boards.id', 'boards.workspace_id');
+
+        if ($workspaceId > 0) {
+            $query->where('workspaces.id', $workspaceId);
+        }
 
         $this->searchColumns($query, $filters['search'], [
             'boards.name',
@@ -218,7 +236,7 @@ class CompanyListingRepository implements CompanyListingRepositoryInterface
 
         return [
             'boards' => $this->paginatorPayload($boards),
-            'filters' => $filters,
+            'filters' => [...$filters, 'workspace_id' => $workspaceId],
             'sort' => $sort,
         ];
     }
@@ -257,6 +275,7 @@ class CompanyListingRepository implements CompanyListingRepositoryInterface
                 'list.board.workspace:id,company_id,name',
             ])
             ->withCount('assignees');
+        $this->applyBoardAccess($query, $user, 'boards.id', 'workspaces.id');
 
         $this->searchColumns($query, $filters['search'], [
             'cards.title',
@@ -318,6 +337,8 @@ class CompanyListingRepository implements CompanyListingRepositoryInterface
         return [
             'id' => $workspace->id,
             'name' => $workspace->name,
+            'description' => $workspace->description,
+            'color' => $workspace->color,
             'creator' => $this->userSummary($workspace->creator),
             'boards_count' => (int) $workspace->getAttribute('boards_count'),
             'tickets_count' => (int) $workspace->getAttribute('tickets_count'),
@@ -335,6 +356,8 @@ class CompanyListingRepository implements CompanyListingRepositoryInterface
         return [
             'id' => $board->id,
             'name' => $board->name,
+            'description' => $board->description,
+            'background' => $board->background,
             'workspace' => $this->workspaceSummary($board->workspace),
             'creator' => $this->userSummary($board->creator),
             'tickets_count' => (int) $board->getAttribute('tickets_count'),
@@ -366,5 +389,60 @@ class CompanyListingRepository implements CompanyListingRepositoryInterface
             'created_at' => $this->date($card->created_at),
             'updated_at' => $this->date($card->updated_at),
         ];
+    }
+
+    private function applyWorkspaceAccess(mixed $query, User $user, string $workspaceColumn): void
+    {
+        if ($user->hasCompanyWideAccess()) {
+            return;
+        }
+
+        $query->where(function ($accessQuery) use ($user, $workspaceColumn): void {
+            $accessQuery
+                ->whereExists(function ($membershipQuery) use ($user, $workspaceColumn): void {
+                    $membershipQuery
+                        ->selectRaw('1')
+                        ->from('workspace_user')
+                        ->whereColumn('workspace_user.workspace_id', $workspaceColumn)
+                        ->where('workspace_user.user_id', $user->id);
+                })
+                ->orWhereExists(function ($membershipQuery) use ($user, $workspaceColumn): void {
+                    $membershipQuery
+                        ->selectRaw('1')
+                        ->from('board_user')
+                        ->join('boards as access_boards', 'access_boards.id', '=', 'board_user.board_id')
+                        ->whereColumn('access_boards.workspace_id', $workspaceColumn)
+                        ->where('board_user.user_id', $user->id);
+                });
+        });
+    }
+
+    private function applyBoardAccess(
+        mixed $query,
+        User $user,
+        string $boardColumn,
+        string $workspaceColumn,
+    ): void {
+        if ($user->hasCompanyWideAccess()) {
+            return;
+        }
+
+        $query->where(function ($accessQuery) use ($user, $boardColumn, $workspaceColumn): void {
+            $accessQuery
+                ->whereExists(function ($membershipQuery) use ($user, $boardColumn): void {
+                    $membershipQuery
+                        ->selectRaw('1')
+                        ->from('board_user')
+                        ->whereColumn('board_user.board_id', $boardColumn)
+                        ->where('board_user.user_id', $user->id);
+                })
+                ->orWhereExists(function ($membershipQuery) use ($user, $workspaceColumn): void {
+                    $membershipQuery
+                        ->selectRaw('1')
+                        ->from('workspace_user')
+                        ->whereColumn('workspace_user.workspace_id', $workspaceColumn)
+                        ->where('workspace_user.user_id', $user->id);
+                });
+        });
     }
 }

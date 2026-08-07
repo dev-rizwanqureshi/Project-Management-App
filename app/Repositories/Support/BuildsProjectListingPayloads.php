@@ -120,28 +120,76 @@ trait BuildsProjectListingPayloads
             ->whereNull('workspaces.deleted_at');
     }
 
-    protected function workspaceBoardsCountSubquery(): Closure
+    protected function workspaceBoardsCountSubquery(?User $user = null): Closure
     {
-        return fn ($query) => $query
-            ->from('boards')
-            ->selectRaw('count(*)')
-            ->whereColumn('boards.workspace_id', 'workspaces.id')
-            ->where('boards.is_restricted', false)
-            ->whereNull('boards.deleted_at');
+        return function ($query) use ($user) {
+            $query
+                ->from('boards')
+                ->selectRaw('count(*)')
+                ->whereColumn('boards.workspace_id', 'workspaces.id')
+                ->where('boards.is_restricted', false)
+                ->whereNull('boards.deleted_at');
+
+            if ($user !== null && ! $user->hasCompanyWideAccess()) {
+                $query->where(function ($accessQuery) use ($user): void {
+                    $accessQuery
+                        ->whereExists(function ($membershipQuery) use ($user): void {
+                            $membershipQuery
+                                ->selectRaw('1')
+                                ->from('workspace_user')
+                                ->whereColumn('workspace_user.workspace_id', 'workspaces.id')
+                                ->where('workspace_user.user_id', $user->id);
+                        })
+                        ->orWhereExists(function ($membershipQuery) use ($user): void {
+                            $membershipQuery
+                                ->selectRaw('1')
+                                ->from('board_user')
+                                ->whereColumn('board_user.board_id', 'boards.id')
+                                ->where('board_user.user_id', $user->id);
+                        });
+                });
+            }
+
+            return $query;
+        };
     }
 
-    protected function workspaceTicketsCountSubquery(): Closure
+    protected function workspaceTicketsCountSubquery(?User $user = null): Closure
     {
-        return fn ($query) => $query
-            ->from('cards')
-            ->join('lists', 'lists.id', '=', 'cards.list_id')
-            ->join('boards', 'boards.id', '=', 'lists.board_id')
-            ->selectRaw('count(*)')
-            ->whereColumn('boards.workspace_id', 'workspaces.id')
-            ->where('cards.is_restricted', false)
-            ->where('boards.is_restricted', false)
-            ->whereNull('cards.deleted_at')
-            ->whereNull('boards.deleted_at');
+        return function ($query) use ($user) {
+            $query
+                ->from('cards')
+                ->join('lists', 'lists.id', '=', 'cards.list_id')
+                ->join('boards', 'boards.id', '=', 'lists.board_id')
+                ->selectRaw('count(*)')
+                ->whereColumn('boards.workspace_id', 'workspaces.id')
+                ->where('cards.is_restricted', false)
+                ->where('boards.is_restricted', false)
+                ->whereNull('cards.deleted_at')
+                ->whereNull('boards.deleted_at');
+
+            if ($user !== null && ! $user->hasCompanyWideAccess()) {
+                $query->where(function ($accessQuery) use ($user): void {
+                    $accessQuery
+                        ->whereExists(function ($membershipQuery) use ($user): void {
+                            $membershipQuery
+                                ->selectRaw('1')
+                                ->from('workspace_user')
+                                ->whereColumn('workspace_user.workspace_id', 'workspaces.id')
+                                ->where('workspace_user.user_id', $user->id);
+                        })
+                        ->orWhereExists(function ($membershipQuery) use ($user): void {
+                            $membershipQuery
+                                ->selectRaw('1')
+                                ->from('board_user')
+                                ->whereColumn('board_user.board_id', 'boards.id')
+                                ->where('board_user.user_id', $user->id);
+                        });
+                });
+            }
+
+            return $query;
+        };
     }
 
     protected function boardTicketsCountSubquery(): Closure

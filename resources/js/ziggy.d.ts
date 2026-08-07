@@ -6,7 +6,6 @@ declare module 'ziggy-js' {
         'register.store': [];
         login: [];
         'login.store': [];
-        'profile.show': [];
         'admin.login': [];
         'admin.login.store': [];
         'admin.logout': [];
@@ -68,6 +67,73 @@ declare module 'ziggy-js' {
         'users.index': [];
         'workspaces.index': [];
         'boards.index': [];
+        'boards.show': [
+            {
+                name: 'board';
+                required: true;
+                binding: 'id';
+            },
+        ];
+        'boards.cards.show': [
+            {
+                name: 'board';
+                required: true;
+                binding: 'id';
+            },
+            {
+                name: 'card';
+                required: true;
+                binding: 'id';
+            },
+        ];
+        'boards.cards.store': [
+            {
+                name: 'board';
+                required: true;
+                binding: 'id';
+            },
+        ];
+        'boards.cards.move': [
+            {
+                name: 'board';
+                required: true;
+                binding: 'id';
+            },
+            {
+                name: 'card';
+                required: true;
+                binding: 'id';
+            },
+        ];
+        'boards.cards.comments.store': [
+            {
+                name: 'board';
+                required: true;
+                binding: 'id';
+            },
+            {
+                name: 'card';
+                required: true;
+                binding: 'id';
+            },
+        ];
+        'boards.cards.attachments.download': [
+            {
+                name: 'board';
+                required: true;
+                binding: 'id';
+            },
+            {
+                name: 'card';
+                required: true;
+                binding: 'id';
+            },
+            {
+                name: 'attachment';
+                required: true;
+                binding: 'id';
+            },
+        ];
         'cards.index': [];
         'roles.index': [];
         'roles.store': [];

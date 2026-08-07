@@ -98,7 +98,14 @@ class User extends Authenticatable implements PasskeyUser
     public function companies(): BelongsToMany
     {
         return $this->belongsToMany(Company::class)
-            ->withPivot(['role', 'role_id', 'status', 'joined_at', 'left_at'])
+            ->withPivot([
+                'role',
+                'role_id',
+                'status',
+                'is_company_wide',
+                'joined_at',
+                'left_at',
+            ])
             ->withTimestamps();
     }
 
@@ -221,5 +228,55 @@ class User extends Authenticatable implements PasskeyUser
             ->pluck('slug')
             ->map(fn (mixed $slug): string => (string) $slug)
             ->all());
+    }
+
+    public function hasCompanyWideAccess(): bool
+    {
+        if ($this->company_id === null) {
+            return false;
+        }
+
+        return $this->activeCompanyMembership()
+            ->where('company_id', $this->company_id)
+            ->where('is_company_wide', true)
+            ->exists();
+    }
+
+    public function hasWorkspaceAccess(Workspace $workspace): bool
+    {
+        if ($this->company_id !== $workspace->company_id) {
+            return false;
+        }
+
+        if ($this->hasCompanyWideAccess()) {
+            return true;
+        }
+
+        return $workspace->users()
+            ->whereKey($this->id)
+            ->exists()
+            || $workspace->boards()
+                ->whereHas('users', fn ($query) => $query->whereKey($this->id))
+                ->exists();
+    }
+
+    public function hasBoardAccess(Board $board): bool
+    {
+        $board->loadMissing('workspace');
+
+        if (! $board->workspace || $this->company_id !== $board->workspace->company_id) {
+            return false;
+        }
+
+        if ($this->hasCompanyWideAccess()) {
+            return true;
+        }
+
+        return $board->users()
+            ->whereKey($this->id)
+            ->exists()
+            || $board->workspace->users()
+                ->whereKey($this->id)
+                ->exists();
     }
 }

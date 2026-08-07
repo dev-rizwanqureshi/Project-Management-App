@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import AppLogoIcon from '@/Components/AppLogoIcon.vue';
+import RiraaMark from '@/Components/RiraaMark.vue';
 import { welcome } from '@/routes';
 
 defineProps<{
@@ -20,13 +20,10 @@ defineProps<{
                         :href="welcome()"
                         class="flex flex-col items-center gap-2 font-medium"
                     >
-                        <div
-                            class="mb-1 flex h-9 w-9 items-center justify-center rounded-md"
-                        >
-                            <AppLogoIcon
-                                class="size-9 fill-current text-primary"
-                            />
-                        </div>
+                        <RiraaMark class="mb-1 size-9 rounded-[12px]" />
+                        <span class="text-lg font-semibold tracking-[-0.04em]">
+                            riraa
+                        </span>
                         <span class="sr-only">{{ title }}</span>
                     </Link>
                     <div class="space-y-2 text-center">

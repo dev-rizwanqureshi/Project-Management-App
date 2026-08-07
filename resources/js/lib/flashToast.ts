@@ -11,6 +11,8 @@ export function initializeFlashToast(): void {
             return;
         }
 
-        toast[data.type](data.message);
+        toast[data.type](data.message, {
+            duration: data.type === 'error' ? 6000 : 4000,
+        });
     });
 }

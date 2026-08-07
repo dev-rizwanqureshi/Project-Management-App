@@ -68,3 +68,30 @@ export type Card = TimestampedModel & {
     description?: string | null;
     position: number;
 };
+
+export type ProjectBoardSummary = {
+    id: number;
+    name: string;
+    description: string | null;
+    background: string | null;
+};
+
+export type ProjectWorkspaceSummary = {
+    id: number;
+    name: string;
+    slug: string;
+    description: string | null;
+    color: string | null;
+    boards_count: number;
+    boards: ProjectBoardSummary[];
+};
+
+export type ProjectContext = {
+    company: {
+        id: number;
+        name: string;
+        slug: string;
+        logo: string | null;
+    };
+    workspaces: ProjectWorkspaceSummary[];
+};

@@ -19,6 +19,4 @@ interface AuthRepositoryInterface
     public function attemptLogin(array $credentials): bool;
 
     public function logout(): void;
-
-    public function getAuthenticatedUser(): ?User;
 }

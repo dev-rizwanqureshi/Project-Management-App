@@ -52,9 +52,4 @@ class AuthService implements AuthServiceInterface
         $request->session()->invalidate();
         $request->session()->regenerateToken();
     }
-
-    public function getProfile(): ?User
-    {
-        return $this->authRepository->getAuthenticatedUser();
-    }
 }

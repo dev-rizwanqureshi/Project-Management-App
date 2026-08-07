@@ -44,7 +44,6 @@ createInertiaApp({
         const authStore = useAuthStore(pinia);
 
         setSessionExpiredHandler(() => authStore.setUser(null));
-        void authStore.fetchProfile();
     },
 });
 

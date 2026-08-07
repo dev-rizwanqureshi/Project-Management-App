@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\Admin;
 use App\Models\User;
+use App\Models\Workspace;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -55,11 +56,97 @@ class HandleInertiaRequests extends Middleware
                 'user' => $user,
                 'permissions' => $user instanceof User ? $user->permissionSlugs() : [],
             ],
+            'projectContext' => $user instanceof User ? $this->projectContext($user) : null,
             'adminAuth' => [
                 'admin' => $admin,
                 'permissions' => $admin instanceof Admin ? $admin->permissionSlugs() : [],
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function projectContext(User $user): ?array
+    {
+        $company = $user->company;
+
+        if (! $company) {
+            return null;
+        }
+
+        $hasCompanyWideAccess = $user->hasCompanyWideAccess();
+
+        $workspaceModels = Workspace::query()
+            ->where('company_id', $company->id)
+            ->where('is_restricted', false)
+            ->when(! $hasCompanyWideAccess, function ($query) use ($user): void {
+                $query->where(function ($accessQuery) use ($user): void {
+                    $accessQuery
+                        ->whereHas('users', fn ($usersQuery) => $usersQuery->whereKey($user->id))
+                        ->orWhereHas(
+                            'boards.users',
+                            fn ($usersQuery) => $usersQuery->whereKey($user->id),
+                        );
+                });
+            })
+            ->withCount([
+                'boards' => fn ($query) => $query
+                    ->where('is_restricted', false)
+                    ->where('is_archived', false),
+            ])
+            ->with([
+                'boards' => fn ($query) => $query
+                    ->select('id', 'workspace_id', 'name', 'description', 'background')
+                    ->where('is_restricted', false)
+                    ->where('is_archived', false)
+                    ->when(! $hasCompanyWideAccess, function ($query) use ($user): void {
+                        $query->where(function ($accessQuery) use ($user): void {
+                            $accessQuery
+                                ->whereHas('users', fn ($usersQuery) => $usersQuery->whereKey($user->id))
+                                ->orWhereHas(
+                                    'workspace.users',
+                                    fn ($usersQuery) => $usersQuery->whereKey($user->id),
+                                );
+                        });
+                    })
+                    ->orderBy('name'),
+            ])
+            ->orderBy('name')
+            ->get(['id', 'company_id', 'name', 'slug', 'description', 'color']);
+
+        $workspaces = [];
+        foreach ($workspaceModels as $workspace) {
+            $boards = [];
+            foreach ($workspace->boards as $board) {
+                $boards[] = [
+                    'id' => $board->id,
+                    'name' => $board->name,
+                    'description' => $board->description,
+                    'background' => $board->background,
+                ];
+            }
+
+            $workspaces[] = [
+                'id' => $workspace->id,
+                'name' => $workspace->name,
+                'slug' => $workspace->slug,
+                'description' => $workspace->description,
+                'color' => $workspace->color,
+                'boards_count' => (int) $workspace->getAttribute('boards_count'),
+                'boards' => $boards,
+            ];
+        }
+
+        return [
+            'company' => [
+                'id' => $company->id,
+                'name' => $company->name,
+                'slug' => $company->slug,
+                'logo' => $company->logo,
+            ],
+            'workspaces' => $workspaces,
         ];
     }
 }

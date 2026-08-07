@@ -12,7 +12,9 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Features;
 
 class SettingsRepository implements SettingsRepositoryInterface
@@ -90,10 +92,52 @@ class SettingsRepository implements SettingsRepositoryInterface
 
     public function deleteProfile(User $user, Request $request): void
     {
+        DB::transaction(function () use ($user): void {
+            $memberships = CompanyUser::query()
+                ->where('user_id', $user->id)
+                ->where('status', 'active')
+                ->lockForUpdate()
+                ->get();
+
+            foreach ($memberships as $membership) {
+                if ($membership->role !== 'owner') {
+                    continue;
+                }
+
+                $hasAnotherOwner = CompanyUser::query()
+                    ->where('company_id', $membership->company_id)
+                    ->where('status', 'active')
+                    ->where('role', 'owner')
+                    ->where('user_id', '!=', $user->id)
+                    ->exists();
+
+                if (! $hasAnotherOwner) {
+                    throw ValidationException::withMessages([
+                        'password' => 'Transfer ownership before deleting the last company owner.',
+                    ]);
+                }
+            }
+
+            DB::table('workspace_user')->where('user_id', $user->id)->delete();
+            DB::table('board_user')->where('user_id', $user->id)->delete();
+            DB::table('card_user')->where('user_id', $user->id)->delete();
+
+            foreach ($memberships as $membership) {
+                $membership->forceFill([
+                    'status' => 'left',
+                    'left_at' => now(),
+                ])->save();
+            }
+
+            $user->forceFill([
+                'company_id' => null,
+                'role' => 'member',
+                'role_id' => null,
+            ])->save();
+            $user->delete();
+        });
+
         Auth::logout();
-
-        $user->delete();
-
         $request->session()->invalidate();
         $request->session()->regenerateToken();
     }

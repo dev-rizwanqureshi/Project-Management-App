@@ -70,15 +70,4 @@ class AuthRepository implements AuthRepositoryInterface
     {
         Auth::logout();
     }
-
-    public function getAuthenticatedUser(): ?User
-    {
-        $user = Auth::user();
-
-        if (! $user instanceof User) {
-            return null;
-        }
-
-        return $user->load('company', 'roleDefinition.permissions', 'activeCompanyMembership');
-    }
 }

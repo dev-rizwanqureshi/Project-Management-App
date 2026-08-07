@@ -14,8 +14,8 @@ import {
 import { computed } from 'vue';
 import { route } from 'ziggy-js';
 import AppLogo from '@/Components/AppLogo.vue';
-import AppLogoIcon from '@/Components/AppLogoIcon.vue';
 import Breadcrumbs from '@/Components/Breadcrumbs.vue';
+import RiraaMark from '@/Components/RiraaMark.vue';
 import { Avatar, AvatarFallback, AvatarImage } from '@/Components/UI/avatar';
 import { Button } from '@/Components/UI/button';
 import {
@@ -175,8 +175,9 @@ const rightNavItems: NavItem[] = [
                                 >Navigation menu</SheetTitle
                             >
                             <SheetHeader class="flex justify-start text-left">
-                                <AppLogoIcon
-                                    class="size-6 fill-current text-primary"
+                                <RiraaMark
+                                    class="size-7 rounded-[9px]"
+                                    icon-class="size-[18px] fill-current"
                                 />
                             </SheetHeader>
                             <div

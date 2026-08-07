@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import AppLogoIcon from '@/Components/AppLogoIcon.vue';
+import RiraaMark from '@/Components/RiraaMark.vue';
 import {
     Card,
     CardContent,
@@ -25,9 +25,10 @@ defineProps<{
                 :href="welcome()"
                 class="flex items-center gap-2 self-center font-medium"
             >
-                <div class="flex h-9 w-9 items-center justify-center">
-                    <AppLogoIcon class="size-9 fill-current text-primary" />
-                </div>
+                    <RiraaMark class="size-9 rounded-[12px]" />
+                    <span class="text-lg font-semibold tracking-[-0.04em]">
+                        riraa
+                    </span>
             </Link>
 
             <div class="flex flex-col gap-6">

@@ -47,6 +47,7 @@ class RolePermissionDefaults
                 'dashboard.view',
                 'company.view',
                 'users.view',
+                'users.manage',
                 'workspaces.view',
                 'workspaces.manage',
                 'boards.view',
@@ -119,7 +120,11 @@ class RolePermissionDefaults
                 ],
             );
 
-            if ($role->wasRecentlyCreated || $slug === 'owner' || ! $role->permissions()->exists()) {
+            $shouldSyncDefaults = $role->wasRecentlyCreated
+                || $slug === 'owner'
+                || ! $role->permissions()->exists();
+
+            if ($shouldSyncDefaults) {
                 $role->permissions()->sync(
                     $permissions
                         ->filter(fn (Permission $permission): bool => in_array(
@@ -129,6 +134,10 @@ class RolePermissionDefaults
                         ))
                         ->pluck('id')
                         ->all(),
+                );
+            } elseif ($slug === 'admin' && ! $role->permissions()->where('slug', 'users.manage')->exists()) {
+                $role->permissions()->syncWithoutDetaching(
+                    $permissions->where('slug', 'users.manage')->pluck('id')->all(),
                 );
             }
 

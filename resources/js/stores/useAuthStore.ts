@@ -30,10 +30,6 @@ export type AuthActionResult = {
     errors?: ValidationErrors;
 };
 
-type ProfileResponse = {
-    user: User | null;
-};
-
 type RegisterResponse = {
     user: User;
     company: Company;
@@ -66,25 +62,6 @@ export const useAuthStore = defineStore('auth', () => {
         };
     };
 
-    const fetchProfile = async (): Promise<User | null> => {
-        isLoading.value = true;
-
-        try {
-            const response = await http.get<ProfileResponse>(
-                route('profile.show'),
-            );
-            user.value = response.data.user;
-
-            return user.value;
-        } catch {
-            user.value = null;
-
-            return null;
-        } finally {
-            isLoading.value = false;
-        }
-    };
-
     const login = async (
         credentials: LoginCredentials,
     ): Promise<AuthActionResult> => {
@@ -92,7 +69,6 @@ export const useAuthStore = defineStore('auth', () => {
 
         try {
             await http.post(route('login.store'), credentials);
-            await fetchProfile();
 
             return { success: true };
         } catch (error: unknown) {
@@ -116,7 +92,6 @@ export const useAuthStore = defineStore('auth', () => {
             );
 
             user.value = response.data.user;
-            await fetchProfile();
 
             return { success: true };
         } catch (error: unknown) {
@@ -136,7 +111,6 @@ export const useAuthStore = defineStore('auth', () => {
         isLoading,
         isAuthenticated,
         setUser,
-        fetchProfile,
         login,
         registerCompany,
         logout,
