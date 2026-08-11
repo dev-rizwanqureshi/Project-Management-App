@@ -14,9 +14,11 @@ import {
     LoaderCircle,
     MessageCircle,
     Paperclip,
+    Pencil,
     Plus,
     Search,
     Tags,
+    Trash2,
     Upload,
     UserRound,
     X,
@@ -26,6 +28,14 @@ import { route } from 'ziggy-js';
 import TicketDetail from '@/Components/TicketDetail.vue';
 import { Button } from '@/Components/UI/button';
 import { Checkbox } from '@/Components/UI/checkbox';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/Components/UI/dialog';
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
@@ -100,6 +110,9 @@ const { getInitials } = useInitials();
 const canManageCards = computed(() =>
     page.props.auth.permissions.includes('cards.manage'),
 );
+const canManageBoard = computed(() =>
+    page.props.auth.permissions.includes('boards.manage'),
+);
 const currentUserId = computed(() => page.props.auth.user?.id ?? 0);
 const search = ref('');
 const showMine = ref(false);
@@ -109,6 +122,10 @@ const draggingCardId = ref<number | null>(null);
 const dragOverListId = ref<number | null>(null);
 const dragOverCardId = ref<number | null>(null);
 const copiedCardId = ref<number | null>(null);
+const createSectionOpen = ref(false);
+const renameSectionOpen = ref(false);
+const deleteSectionOpen = ref(false);
+const selectedSection = ref<BoardList | null>(null);
 const drawerOpen = computed({
     get: () => Boolean(props.ticket),
     set: (open) => {
@@ -129,6 +146,9 @@ const ticketForm = useForm({
         : ([] as number[]),
     label_ids: [] as number[],
 });
+const createSectionForm = useForm({ name: '' });
+const renameSectionForm = useForm({ name: '' });
+const deleteSectionForm = useForm({ list: null as string | null });
 
 type PendingAttachment = {
     id: string;
@@ -328,6 +348,75 @@ const closeCreateTicket = () => {
     clearAttachments();
 };
 
+const openCreateSection = () => {
+    createSectionForm.reset();
+    createSectionForm.clearErrors();
+    createSectionOpen.value = true;
+};
+
+const createSection = () => {
+    createSectionForm.post(route('boards.lists.store', props.board.id), {
+        preserveScroll: true,
+        onSuccess: () => {
+            createSectionOpen.value = false;
+            createSectionForm.reset();
+        },
+    });
+};
+
+const openRenameSection = (section: BoardList) => {
+    selectedSection.value = section;
+    renameSectionForm.name = section.name;
+    renameSectionForm.clearErrors();
+    renameSectionOpen.value = true;
+};
+
+const renameSection = () => {
+    if (!selectedSection.value) {
+        return;
+    }
+
+    renameSectionForm.patch(
+        route('boards.lists.update', {
+            board: props.board.id,
+            taskList: selectedSection.value.id,
+        }),
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                renameSectionOpen.value = false;
+                selectedSection.value = null;
+            },
+        },
+    );
+};
+
+const openDeleteSection = (section: BoardList) => {
+    selectedSection.value = section;
+    deleteSectionForm.clearErrors();
+    deleteSectionOpen.value = true;
+};
+
+const deleteSection = () => {
+    if (!selectedSection.value) {
+        return;
+    }
+
+    deleteSectionForm.delete(
+        route('boards.lists.destroy', {
+            board: props.board.id,
+            taskList: selectedSection.value.id,
+        }),
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                deleteSectionOpen.value = false;
+                selectedSection.value = null;
+            },
+        },
+    );
+};
+
 const createTicket = () => {
     ticketForm.post(route('boards.cards.store', props.board.id), {
         preserveScroll: true,
@@ -511,6 +600,16 @@ const toggleLabel = (labelId: number) => {
                 My tickets
                 <Check v-if="showMine" class="size-3.5" />
             </Button>
+            <Button
+                v-if="canManageBoard"
+                type="button"
+                variant="outline"
+                class="h-10"
+                @click="openCreateSection"
+            >
+                <Plus class="size-4" />
+                Add section
+            </Button>
             <div
                 class="ml-auto hidden items-center gap-2 text-xs text-muted-foreground md:flex"
             >
@@ -575,6 +674,35 @@ const toggleLabel = (labelId: number) => {
                             <Plus class="size-4" />
                             <span class="sr-only">Add ticket</span>
                         </Button>
+                        <DropdownMenu v-if="canManageBoard">
+                            <DropdownMenuTrigger as-child>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    class="size-7"
+                                    :aria-label="`${list.name} section actions`"
+                                >
+                                    <Ellipsis class="size-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" class="w-44">
+                                <DropdownMenuItem
+                                    @select="openRenameSection(list)"
+                                >
+                                    <Pencil class="size-4" />
+                                    Rename section
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                    class="text-destructive focus:text-destructive"
+                                    @select="openDeleteSection(list)"
+                                >
+                                    <Trash2 class="size-4" />
+                                    Delete section
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
 
                     <div
@@ -787,6 +915,142 @@ const toggleLabel = (labelId: number) => {
             </div>
         </div>
     </section>
+
+    <Dialog v-model:open="createSectionOpen">
+        <DialogContent class="sm:max-w-md">
+            <DialogHeader>
+                <DialogTitle>Add board section</DialogTitle>
+                <DialogDescription>
+                    Create a new workflow section for this board only.
+                </DialogDescription>
+            </DialogHeader>
+            <form class="grid gap-5" @submit.prevent="createSection">
+                <div class="grid gap-2">
+                    <Label for="section-name">Section name</Label>
+                    <Input
+                        id="section-name"
+                        v-model="createSectionForm.name"
+                        autofocus
+                        maxlength="80"
+                        placeholder="Ready for review"
+                        :aria-invalid="Boolean(createSectionForm.errors.name)"
+                    />
+                    <p
+                        v-if="createSectionForm.errors.name"
+                        class="text-xs text-destructive"
+                    >
+                        {{ createSectionForm.errors.name }}
+                    </p>
+                </div>
+                <DialogFooter>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        @click="createSectionOpen = false"
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        type="submit"
+                        :disabled="
+                            createSectionForm.processing ||
+                            !createSectionForm.name.trim()
+                        "
+                    >
+                        <Plus class="size-4" />
+                        Add section
+                    </Button>
+                </DialogFooter>
+            </form>
+        </DialogContent>
+    </Dialog>
+
+    <Dialog v-model:open="renameSectionOpen">
+        <DialogContent class="sm:max-w-md">
+            <DialogHeader>
+                <DialogTitle>Rename board section</DialogTitle>
+                <DialogDescription>
+                    Update how this stage appears on {{ board.name }}.
+                </DialogDescription>
+            </DialogHeader>
+            <form class="grid gap-5" @submit.prevent="renameSection">
+                <div class="grid gap-2">
+                    <Label for="rename-section-name">Section name</Label>
+                    <Input
+                        id="rename-section-name"
+                        v-model="renameSectionForm.name"
+                        autofocus
+                        maxlength="80"
+                        :aria-invalid="Boolean(renameSectionForm.errors.name)"
+                    />
+                    <p
+                        v-if="renameSectionForm.errors.name"
+                        class="text-xs text-destructive"
+                    >
+                        {{ renameSectionForm.errors.name }}
+                    </p>
+                </div>
+                <DialogFooter>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        @click="renameSectionOpen = false"
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        type="submit"
+                        :disabled="
+                            renameSectionForm.processing ||
+                            !renameSectionForm.name.trim()
+                        "
+                    >
+                        Save changes
+                    </Button>
+                </DialogFooter>
+            </form>
+        </DialogContent>
+    </Dialog>
+
+    <Dialog v-model:open="deleteSectionOpen">
+        <DialogContent class="sm:max-w-md">
+            <DialogHeader>
+                <DialogTitle>Delete {{ selectedSection?.name }}?</DialogTitle>
+                <DialogDescription>
+                    This removes the section from this board. Sections that
+                    contain tickets cannot be deleted.
+                </DialogDescription>
+            </DialogHeader>
+            <p
+                v-if="deleteSectionForm.errors.list"
+                class="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive"
+            >
+                {{ deleteSectionForm.errors.list }}
+            </p>
+            <DialogFooter>
+                <Button
+                    type="button"
+                    variant="outline"
+                    @click="deleteSectionOpen = false"
+                >
+                    Cancel
+                </Button>
+                <Button
+                    type="button"
+                    variant="destructive"
+                    :disabled="deleteSectionForm.processing"
+                    @click="deleteSection"
+                >
+                    <Trash2 class="size-4" />
+                    {{
+                        deleteSectionForm.processing
+                            ? 'Deleting...'
+                            : 'Delete section'
+                    }}
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
 
     <Sheet v-model:open="drawerOpen">
         <SheetContent

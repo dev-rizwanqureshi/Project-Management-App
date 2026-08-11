@@ -7,6 +7,7 @@ use App\Http\Requests\Project\StoreBoardRequest;
 use App\Http\Requests\Project\StoreCardRequest;
 use App\Http\Requests\Project\StoreCommentRequest;
 use App\Http\Requests\Project\StoreWorkspaceRequest;
+use App\Http\Requests\Project\UpsertTaskListRequest;
 use App\Models\Attachment;
 use App\Models\Board;
 use App\Models\Card;
@@ -21,6 +22,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -152,6 +154,91 @@ class CompanyProjectController extends Controller
         return Inertia::render('Boards/Show', [
             'board' => $this->boardPayload($board),
             'ticket' => $ticket,
+        ]);
+    }
+
+    public function storeTaskList(UpsertTaskListRequest $request, Board $board): RedirectResponse
+    {
+        $user = $this->user($request);
+        $this->assertBoardBelongsToUserCompany($user, $board);
+        $validated = $request->validated();
+
+        DB::transaction(function () use ($board, $validated): void {
+            $lists = $board->lists()->lockForUpdate()->get(['id', 'position']);
+
+            $board->lists()->create([
+                'name' => trim((string) $validated['name']),
+                'position' => ((int) $lists->max('position')) + 1,
+                'is_archived' => false,
+            ]);
+        });
+
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => 'Board section created.',
+        ]);
+    }
+
+    public function updateTaskList(
+        UpsertTaskListRequest $request,
+        Board $board,
+        TaskList $taskList,
+    ): RedirectResponse {
+        $user = $this->user($request);
+        $this->assertBoardBelongsToUserCompany($user, $board);
+        $this->assertTaskListBelongsToBoard($taskList, $board);
+        $validated = $request->validated();
+
+        $taskList->update(['name' => trim((string) $validated['name'])]);
+
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => 'Board section renamed.',
+        ]);
+    }
+
+    public function destroyTaskList(Request $request, Board $board, TaskList $taskList): RedirectResponse
+    {
+        $user = $this->user($request);
+        $this->assertBoardBelongsToUserCompany($user, $board);
+        $this->assertTaskListBelongsToBoard($taskList, $board);
+
+        DB::transaction(function () use ($board, $taskList): void {
+            $lists = $board->lists()
+                ->where('is_archived', false)
+                ->lockForUpdate()
+                ->orderBy('position')
+                ->orderBy('id')
+                ->get();
+            $list = $lists->firstWhere('id', $taskList->id);
+
+            abort_unless($list instanceof TaskList, 404);
+
+            if ($lists->count() <= 1) {
+                throw ValidationException::withMessages([
+                    'list' => 'A board must keep at least one section.',
+                ]);
+            }
+
+            if ($list->cards()->withTrashed()->exists()) {
+                throw ValidationException::withMessages([
+                    'list' => 'Move or remove every ticket in this section before deleting it.',
+                ]);
+            }
+
+            $list->delete();
+
+            $lists
+                ->reject(fn (TaskList $remainingList): bool => $remainingList->is($list))
+                ->values()
+                ->each(fn (TaskList $remainingList, int $index) => $remainingList->update([
+                    'position' => $index + 1,
+                ]));
+        });
+
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => 'Board section deleted.',
         ]);
     }
 
@@ -459,6 +546,14 @@ class CompanyProjectController extends Controller
             $card->list?->board_id === $board->id
                 && ! $card->is_restricted
                 && ! $card->is_archived,
+            404,
+        );
+    }
+
+    private function assertTaskListBelongsToBoard(TaskList $taskList, Board $board): void
+    {
+        abort_unless(
+            $taskList->board_id === $board->id && ! $taskList->is_archived,
             404,
         );
     }

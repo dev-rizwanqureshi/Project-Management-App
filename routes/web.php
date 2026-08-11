@@ -166,6 +166,15 @@ Route::middleware('auth')->group(function () {
     Route::get('boards/{board}', [CompanyProjectController::class, 'showBoard'])
         ->middleware('permission:boards.view')
         ->name('boards.show');
+    Route::post('boards/{board}/sections', [CompanyProjectController::class, 'storeTaskList'])
+        ->middleware('permission:boards.manage')
+        ->name('boards.lists.store');
+    Route::patch('boards/{board}/sections/{taskList}', [CompanyProjectController::class, 'updateTaskList'])
+        ->middleware('permission:boards.manage')
+        ->name('boards.lists.update');
+    Route::delete('boards/{board}/sections/{taskList}', [CompanyProjectController::class, 'destroyTaskList'])
+        ->middleware('permission:boards.manage')
+        ->name('boards.lists.destroy');
     Route::get('boards/{board}/tickets/{card}', [CompanyProjectController::class, 'showCard'])
         ->middleware('permission:cards.view')
         ->name('boards.cards.show');

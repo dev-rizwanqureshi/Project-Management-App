@@ -7,6 +7,14 @@ import { route } from 'ziggy-js';
 import PaginationControls from '@/Components/Admin/PaginationControls.vue';
 import InputError from '@/Components/InputError.vue';
 import { Button } from '@/Components/UI/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/Components/UI/dialog';
 import { Input } from '@/Components/UI/input';
 import { Label } from '@/Components/UI/label';
 import type { ProjectContext } from '@/types';
@@ -47,7 +55,7 @@ const props = defineProps<{
 const page = usePage();
 const search = ref(props.filters.search);
 const perPage = ref(String(props.filters.per_page));
-const showInviteForm = ref(false);
+const inviteOpen = ref(false);
 const inviteForm = useForm({
     email: '',
     scope: 'company',
@@ -137,13 +145,24 @@ const applyFilters = () => {
     );
 };
 
+const openInvitation = () => {
+    inviteForm.clearErrors();
+    inviteOpen.value = true;
+};
+
+const closeInvitation = () => {
+    inviteOpen.value = false;
+    inviteForm.reset();
+    inviteForm.clearErrors();
+};
+
 const submitInvitation = () => {
     inviteForm.post(route('invitations.store'), {
         preserveScroll: true,
         onSuccess: () => {
             inviteForm.reset();
             inviteForm.scope = 'company';
-            showInviteForm.value = false;
+            inviteOpen.value = false;
         },
     });
 };
@@ -170,109 +189,12 @@ const submitInvitation = () => {
                 v-if="canInvite"
                 type="button"
                 variant="outline"
-                @click="showInviteForm = !showInviteForm"
+                @click="openInvitation"
             >
                 <MailPlus class="size-4" />
-                {{ showInviteForm ? 'Close invite' : 'Invite user' }}
+                Invite user
             </Button>
         </div>
-
-        <form
-            v-if="showInviteForm"
-            class="grid gap-4 rounded-lg border border-primary/20 bg-primary/5 p-4 shadow-sm sm:grid-cols-2"
-            @submit.prevent="submitInvitation"
-        >
-            <div class="grid gap-2 sm:col-span-2">
-                <Label for="invite-email">Email address</Label>
-                <Input
-                    id="invite-email"
-                    v-model="inviteForm.email"
-                    type="email"
-                    required
-                    placeholder="teammate@example.com"
-                />
-                <InputError :message="inviteForm.errors.email" />
-            </div>
-
-            <div class="grid gap-2">
-                <Label for="invite-scope">Invite to</Label>
-                <select
-                    id="invite-scope"
-                    v-model="inviteForm.scope"
-                    class="h-9 rounded-md border border-input bg-background px-3 text-sm"
-                >
-                    <option value="company">Company</option>
-                    <option value="workspace">Workspace</option>
-                    <option value="board">Board</option>
-                </select>
-                <InputError :message="inviteForm.errors.scope" />
-            </div>
-
-            <div class="grid gap-2">
-                <Label for="invite-role">Role</Label>
-                <select
-                    id="invite-role"
-                    v-model="inviteForm.role"
-                    class="h-9 rounded-md border border-input bg-background px-3 text-sm"
-                >
-                    <option v-if="inviteForm.scope === 'company'" value="admin">
-                        Company admin
-                    </option>
-                    <option value="member">Member</option>
-                    <option value="guest">Viewer</option>
-                </select>
-                <InputError :message="inviteForm.errors.role" />
-            </div>
-
-            <div v-if="inviteForm.scope !== 'company'" class="grid gap-2">
-                <Label for="invite-workspace">Workspace</Label>
-                <select
-                    id="invite-workspace"
-                    v-model="inviteForm.workspace_id"
-                    class="h-9 rounded-md border border-input bg-background px-3 text-sm"
-                    required
-                >
-                    <option :value="null">Choose a workspace</option>
-                    <option
-                        v-for="workspace in workspaces"
-                        :key="workspace.id"
-                        :value="workspace.id"
-                    >
-                        {{ workspace.name }}
-                    </option>
-                </select>
-                <InputError :message="inviteForm.errors.workspace_id" />
-            </div>
-
-            <div v-if="inviteForm.scope === 'board'" class="grid gap-2">
-                <Label for="invite-board">Board</Label>
-                <select
-                    id="invite-board"
-                    v-model="inviteForm.board_id"
-                    class="h-9 rounded-md border border-input bg-background px-3 text-sm"
-                    required
-                >
-                    <option :value="null">Choose a board</option>
-                    <option
-                        v-for="board in boards"
-                        :key="board.id"
-                        :value="board.id"
-                    >
-                        {{ board.name }}
-                    </option>
-                </select>
-                <InputError :message="inviteForm.errors.board_id" />
-            </div>
-
-            <div class="flex items-end sm:col-span-2">
-                <Button type="submit" :disabled="inviteForm.processing">
-                    <MailPlus class="size-4" />
-                    {{
-                        inviteForm.processing ? 'Sending...' : 'Send invitation'
-                    }}
-                </Button>
-            </div>
-        </form>
 
         <div class="rounded-lg border border-border bg-card shadow-sm">
             <form
@@ -416,4 +338,127 @@ const submitInvitation = () => {
             </div>
         </div>
     </section>
+
+    <Dialog v-model:open="inviteOpen">
+        <DialogContent class="sm:max-w-lg">
+            <DialogHeader>
+                <DialogTitle>Invite user</DialogTitle>
+                <DialogDescription>
+                    Invite someone to your company, a workspace, or a specific
+                    board.
+                </DialogDescription>
+            </DialogHeader>
+
+            <form class="grid gap-5" @submit.prevent="submitInvitation">
+                <div class="grid gap-2">
+                    <Label for="invite-email">Email address</Label>
+                    <Input
+                        id="invite-email"
+                        v-model="inviteForm.email"
+                        type="email"
+                        required
+                        autofocus
+                        placeholder="teammate@example.com"
+                    />
+                    <InputError :message="inviteForm.errors.email" />
+                </div>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div class="grid gap-2">
+                        <Label for="invite-scope">Invite to</Label>
+                        <select
+                            id="invite-scope"
+                            v-model="inviteForm.scope"
+                            class="riraa-select h-10 w-full"
+                        >
+                            <option value="company">Company</option>
+                            <option value="workspace">Workspace</option>
+                            <option value="board">Board</option>
+                        </select>
+                        <InputError :message="inviteForm.errors.scope" />
+                    </div>
+
+                    <div class="grid gap-2">
+                        <Label for="invite-role">Role</Label>
+                        <select
+                            id="invite-role"
+                            v-model="inviteForm.role"
+                            class="riraa-select h-10 w-full"
+                        >
+                            <option
+                                v-if="inviteForm.scope === 'company'"
+                                value="admin"
+                            >
+                                Company admin
+                            </option>
+                            <option value="member">Member</option>
+                            <option value="guest">Viewer</option>
+                        </select>
+                        <InputError :message="inviteForm.errors.role" />
+                    </div>
+                </div>
+
+                <div v-if="inviteForm.scope !== 'company'" class="grid gap-2">
+                    <Label for="invite-workspace">Workspace</Label>
+                    <select
+                        id="invite-workspace"
+                        v-model="inviteForm.workspace_id"
+                        class="riraa-select h-10 w-full"
+                        required
+                    >
+                        <option :value="null">Choose a workspace</option>
+                        <option
+                            v-for="workspace in workspaces"
+                            :key="workspace.id"
+                            :value="workspace.id"
+                        >
+                            {{ workspace.name }}
+                        </option>
+                    </select>
+                    <InputError :message="inviteForm.errors.workspace_id" />
+                </div>
+
+                <div v-if="inviteForm.scope === 'board'" class="grid gap-2">
+                    <Label for="invite-board">Board</Label>
+                    <select
+                        id="invite-board"
+                        v-model="inviteForm.board_id"
+                        class="riraa-select h-10 w-full"
+                        required
+                    >
+                        <option :value="null">Choose a board</option>
+                        <option
+                            v-for="board in boards"
+                            :key="board.id"
+                            :value="board.id"
+                        >
+                            {{ board.name }}
+                        </option>
+                    </select>
+                    <InputError :message="inviteForm.errors.board_id" />
+                </div>
+
+                <DialogFooter>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        @click="closeInvitation"
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        type="submit"
+                        :disabled="inviteForm.processing || !inviteForm.email"
+                    >
+                        <MailPlus class="size-4" />
+                        {{
+                            inviteForm.processing
+                                ? 'Sending...'
+                                : 'Send invitation'
+                        }}
+                    </Button>
+                </DialogFooter>
+            </form>
+        </DialogContent>
+    </Dialog>
 </template>

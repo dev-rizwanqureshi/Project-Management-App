@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
+use Symfony\Component\Mailer\Exception\TransportException;
 use Tests\TestCase;
 
 class CompanyProjectTest extends TestCase
@@ -164,6 +165,95 @@ class CompanyProjectTest extends TestCase
             );
     }
 
+    public function test_owner_can_create_rename_and_delete_sections_for_one_board(): void
+    {
+        [$owner, $company] = $this->companyUser('owner');
+        [, $board] = $this->project($company, $owner);
+        [, $otherBoard] = $this->project($company, $owner, 'Other', 'other');
+
+        $this->actingAs($owner)
+            ->post(route('boards.lists.store', $board), ['name' => 'Review'])
+            ->assertRedirect()
+            ->assertSessionHas('toast.message', 'Board section created.');
+
+        $section = $board->lists()->where('name', 'Review')->firstOrFail();
+        $this->assertSame(3, $section->position);
+        $this->assertDatabaseMissing('lists', [
+            'board_id' => $otherBoard->id,
+            'name' => 'Review',
+        ]);
+
+        $this->actingAs($owner)
+            ->patch(route('boards.lists.update', [$board, $section]), ['name' => 'Ready for review'])
+            ->assertRedirect()
+            ->assertSessionHas('toast.message', 'Board section renamed.');
+
+        $this->assertDatabaseHas('lists', [
+            'id' => $section->id,
+            'board_id' => $board->id,
+            'name' => 'Ready for review',
+        ]);
+
+        $this->actingAs($owner)
+            ->delete(route('boards.lists.destroy', [$board, $section]))
+            ->assertRedirect()
+            ->assertSessionHas('toast.message', 'Board section deleted.');
+
+        $this->assertDatabaseMissing('lists', ['id' => $section->id]);
+        $this->assertSame([1, 2], $board->lists()->orderBy('position')->pluck('position')->all());
+    }
+
+    public function test_section_crud_is_scoped_to_the_board_and_requires_board_management(): void
+    {
+        [$owner, $company] = $this->companyUser('owner');
+        [, $board] = $this->project($company, $owner);
+        [, $otherBoard, $foreignSection] = $this->project($company, $owner, 'Other', 'other');
+        [$member] = $this->companyUser('member');
+
+        $this->actingAs($owner)
+            ->patch(route('boards.lists.update', [$board, $foreignSection]), ['name' => 'Not allowed'])
+            ->assertNotFound();
+
+        $this->actingAs($owner)
+            ->delete(route('boards.lists.destroy', [$board, $foreignSection]))
+            ->assertNotFound();
+
+        $this->actingAs($member)
+            ->post(route('boards.lists.store', $otherBoard), ['name' => 'Not allowed'])
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('lists', [
+            'id' => $foreignSection->id,
+            'name' => 'Backlog',
+        ]);
+    }
+
+    public function test_sections_with_tickets_and_the_last_section_cannot_be_deleted(): void
+    {
+        [$owner, $company] = $this->companyUser('owner');
+        [, $board, $backlog, $done] = $this->project($company, $owner);
+        Card::query()->create([
+            'list_id' => $backlog->id,
+            'title' => 'Keep this ticket',
+            'created_by' => $owner->id,
+        ]);
+
+        $this->actingAs($owner)
+            ->delete(route('boards.lists.destroy', [$board, $backlog]))
+            ->assertSessionHasErrors(['list']);
+
+        $this->actingAs($owner)
+            ->delete(route('boards.lists.destroy', [$board, $done]))
+            ->assertRedirect();
+
+        $this->actingAs($owner)
+            ->delete(route('boards.lists.destroy', [$board, $backlog]))
+            ->assertSessionHasErrors(['list']);
+
+        $this->assertDatabaseHas('cards', ['title' => 'Keep this ticket']);
+        $this->assertDatabaseHas('lists', ['id' => $backlog->id]);
+    }
+
     public function test_member_cannot_create_workspaces_or_boards(): void
     {
         [$member, $company] = $this->companyUser('member');
@@ -291,6 +381,36 @@ class CompanyProjectTest extends TestCase
         Mail::assertSent(InvitationMail::class, fn (InvitationMail $mail): bool => $mail->hasTo('admin@example.test')
             && $mail->invitation->is($invitation)
         );
+    }
+
+    public function test_mail_transport_failure_returns_an_invitation_error_without_leaving_a_pending_invite(): void
+    {
+        [$owner] = $this->companyUser('owner');
+
+        Mail::shouldReceive('to')
+            ->once()
+            ->with('unreachable@example.test')
+            ->andReturnSelf();
+        Mail::shouldReceive('send')
+            ->once()
+            ->andThrow(new TransportException('Connection refused'));
+
+        $this->actingAs($owner)
+            ->from(route('users.index'))
+            ->post(route('invitations.store'), [
+                'email' => 'unreachable@example.test',
+                'scope' => 'company',
+                'role' => 'member',
+            ])
+            ->assertRedirect(route('users.index'))
+            ->assertSessionHasErrors([
+                'email' => 'We could not send the invitation email. Check the mail service and try again.',
+            ]);
+
+        $this->assertDatabaseMissing('invitations', [
+            'email' => 'unreachable@example.test',
+            'accepted_at' => null,
+        ]);
     }
 
     public function test_workspace_invitation_can_create_an_account_and_join_the_workspace(): void

@@ -12,9 +12,11 @@ use App\Models\Workspace;
 use App\Repositories\Contracts\CompanyMembershipRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 class InvitationService
 {
@@ -60,7 +62,22 @@ class InvitationService
             ]);
         });
 
-        Mail::to($email)->send(new InvitationMail($invitation, $token));
+        try {
+            Mail::to($email)->send(new InvitationMail($invitation, $token));
+        } catch (TransportExceptionInterface $exception) {
+            $invitation->delete();
+
+            Log::warning('Invitation email delivery failed.', [
+                'company_id' => $company->id,
+                'invitation_id' => $invitation->id,
+                'mailer' => config('mail.default'),
+                'exception' => $exception::class,
+            ]);
+
+            throw ValidationException::withMessages([
+                'email' => 'We could not send the invitation email. Check the mail service and try again.',
+            ]);
+        }
 
         return ['invitation' => $invitation, 'token' => $token];
     }
