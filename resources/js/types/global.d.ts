@@ -3,6 +3,7 @@ import type { route as ziggyRoute } from 'ziggy-js';
 
 import type { AdminAuth, Auth } from '@/types/auth';
 import type { ProjectContext } from '@/types/models';
+import type { NotificationSummary } from '@/types/notifications';
 
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
@@ -24,6 +25,7 @@ declare module '@inertiajs/core' {
             auth: Auth;
             adminAuth: AdminAuth;
             projectContext: ProjectContext | null;
+            notifications: NotificationSummary;
             sidebarOpen: boolean;
             [key: string]: unknown;
         };

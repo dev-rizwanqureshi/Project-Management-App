@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\Resources\NotificationResource;
 use App\Models\Admin;
 use App\Models\User;
 use App\Models\Workspace;
@@ -49,6 +50,10 @@ class HandleInertiaRequests extends Middleware
             $admin->loadMissing('adminRole.permissions');
         }
 
+        $notifications = $user instanceof User
+            ? $user->notifications()->latest()->limit(5)->get()
+            : collect();
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -57,6 +62,12 @@ class HandleInertiaRequests extends Middleware
                 'permissions' => $user instanceof User ? $user->permissionSlugs() : [],
             ],
             'projectContext' => $user instanceof User ? $this->projectContext($user) : null,
+            'notifications' => [
+                'recent' => NotificationResource::collection($notifications)->resolve($request),
+                'unread_count' => $user instanceof User
+                    ? $user->unreadNotifications()->count()
+                    : 0,
+            ],
             'adminAuth' => [
                 'admin' => $admin,
                 'permissions' => $admin instanceof Admin ? $admin->permissionSlugs() : [],

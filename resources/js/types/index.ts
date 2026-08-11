@@ -17,5 +17,6 @@ export type {
     Workspace,
 } from './models';
 export * from './navigation';
+export * from './notifications';
 export * from './project';
 export * from './ui';

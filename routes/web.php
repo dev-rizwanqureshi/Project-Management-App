@@ -13,6 +13,7 @@ use App\Http\Controllers\CompanyProjectController;
 use App\Http\Controllers\CompanySetupController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RoleManagementController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
@@ -135,6 +136,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::post('logout', [AuthController::class, 'logout'])->name('logout');
+    Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('notifications/more', [NotificationController::class, 'more'])->name('notifications.more');
     Route::get('company/setup', [CompanySetupController::class, 'create'])->name('company.setup');
     Route::post('company/setup', [CompanySetupController::class, 'store'])->name('company.setup.store');
 
