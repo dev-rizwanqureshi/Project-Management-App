@@ -16,14 +16,14 @@ import {
     Zap,
 } from '@lucide/vue';
 import { computed } from 'vue';
-import { route } from 'ziggy-js';
 import RiraaMark from '@/Components/RiraaMark.vue';
 import { Button } from '@/Components/UI/button';
+import { dashboard, login, register, welcome } from '@/routes';
 
 const page = usePage();
 const user = computed(() => page.props.auth?.user ?? null);
 const primaryUrl = computed(() =>
-    user.value ? route('dashboard') : route('register'),
+    user.value ? dashboard.url() : register.url(),
 );
 const primaryLabel = computed(() =>
     user.value ? 'Open your workspace' : 'Get started free',
@@ -83,7 +83,7 @@ const footerGroups = [
     <div class="riraa-home min-h-screen overflow-hidden bg-white text-[#17151c]">
         <header class="riraa-nav sticky top-0 z-40 border-b border-[#ebe7ee] bg-white/90 backdrop-blur-xl">
             <div class="mx-auto flex h-[68px] max-w-[1240px] items-center gap-8 px-5 sm:px-8">
-                <Link :href="route('welcome')" class="flex items-center gap-2.5" aria-label="Riraa home">
+                <Link :href="welcome.url()" class="flex items-center gap-2.5" aria-label="Riraa home">
                     <RiraaMark />
                     <span class="text-[18px] font-semibold tracking-[-0.04em]">riraa</span>
                 </Link>
@@ -97,7 +97,7 @@ const footerGroups = [
                 </nav>
 
                 <div class="ml-auto flex items-center gap-2">
-                    <Link v-if="!user" :href="route('login')" class="hidden rounded-full px-3.5 py-2 text-[13px] font-medium text-[#5f5966] transition hover:bg-[#f6f3f7] hover:text-[#17151c] sm:inline-flex">
+                    <Link v-if="!user" :href="login.url()" class="hidden rounded-full px-3.5 py-2 text-[13px] font-medium text-[#5f5966] transition hover:bg-[#f6f3f7] hover:text-[#17151c] sm:inline-flex">
                         Log in
                     </Link>
                     <Button as-child size="sm" class="riraa-cta riraa-cta--ink riraa-cta--compact">
@@ -216,12 +216,12 @@ const footerGroups = [
                 <div class="mx-auto max-w-[1160px]"><div class="max-w-[570px]"><p class="riraa-kicker text-[#6954d8]">ALL THE IMPORTANT PIECES</p><h2 class="mt-5 text-4xl font-semibold leading-[1.02] tracking-[-0.06em] sm:text-6xl">Your team just got bigger.</h2><p class="mt-6 text-base leading-7 text-[#68616e]">Invite the right people, give them the right context, and let everyone do their best work.</p></div><div class="mt-14 grid gap-4 md:grid-cols-3"> <article v-for="capability in capabilities" :key="capability.title" class="riraa-capability-card group"><span class="flex size-11 items-center justify-center rounded-2xl" :class="capability.color === 'violet' ? 'bg-[#eee9fb] text-[#6954d8]' : capability.color === 'orange' ? 'bg-[#fff0db] text-[#cb722a]' : 'bg-[#e1f4f1] text-[#168e82]'"><component :is="capability.icon" class="size-5" /></span><p class="mt-9 text-[10px] font-semibold tracking-[0.16em] text-[#938b96]">{{ capability.eyebrow }}</p><h3 class="mt-3 text-xl font-semibold leading-tight tracking-[-0.04em]">{{ capability.title }}</h3><p class="mt-3 text-sm leading-6 text-[#756e79]">{{ capability.body }}</p><a :href="capability.color === 'violet' ? '#product' : '#workflow'" class="mt-8 inline-flex items-center gap-2 text-xs font-semibold text-[#4c4551]">Learn more <ArrowRight class="size-3.5 transition group-hover:translate-x-1" /></a></article></div></div>
             </section>
 
-            <section id="pricing" class="border-y border-[#ebe7ee] bg-[#faf8fa] px-5 py-20 sm:px-8 sm:py-24"><div class="mx-auto flex max-w-[1160px] flex-col justify-between gap-8 md:flex-row md:items-center"><div><p class="riraa-kicker text-[#168e82]">GET STARTED EASILY</p><h2 class="mt-4 text-3xl font-semibold tracking-[-0.05em] sm:text-4xl">A clearer day is a few clicks away.</h2><p class="mt-3 max-w-[500px] text-sm leading-6 text-[#756e79]">Start with one workspace. Add your team when you’re ready. Riraa grows with the work.</p></div><div class="flex flex-wrap gap-3"><Button as-child size="lg" class="riraa-cta riraa-cta--ink riraa-cta--regular"><Link :href="primaryUrl">{{ primaryLabel }} <ArrowRight class="size-4" /></Link></Button><Button v-if="!user" as-child variant="outline" size="lg" class="riraa-cta riraa-cta--outline riraa-cta--regular"><Link :href="route('login')">Sign in</Link></Button></div></div></section>
+            <section id="pricing" class="border-y border-[#ebe7ee] bg-[#faf8fa] px-5 py-20 sm:px-8 sm:py-24"><div class="mx-auto flex max-w-[1160px] flex-col justify-between gap-8 md:flex-row md:items-center"><div><p class="riraa-kicker text-[#168e82]">GET STARTED EASILY</p><h2 class="mt-4 text-3xl font-semibold tracking-[-0.05em] sm:text-4xl">A clearer day is a few clicks away.</h2><p class="mt-3 max-w-[500px] text-sm leading-6 text-[#756e79]">Start with one workspace. Add your team when you’re ready. Riraa grows with the work.</p></div><div class="flex flex-wrap gap-3"><Button as-child size="lg" class="riraa-cta riraa-cta--ink riraa-cta--regular"><Link :href="primaryUrl">{{ primaryLabel }} <ArrowRight class="size-4" /></Link></Button><Button v-if="!user" as-child variant="outline" size="lg" class="riraa-cta riraa-cta--outline riraa-cta--regular"><Link :href="login.url()">Sign in</Link></Button></div></div></section>
 
             <section class="bg-white px-5 py-24 sm:px-8 sm:py-32"><div class="mx-auto max-w-[1160px]"><div class="flex flex-col justify-between gap-7 md:flex-row md:items-end"><div><p class="riraa-kicker text-[#f04b67]">BUILT FOR THE WAY YOU WORK</p><h2 class="mt-4 max-w-[610px] text-4xl font-semibold leading-[1.02] tracking-[-0.06em] sm:text-6xl">Simple enough to start. Strong enough to stay.</h2></div><span class="flex size-12 items-center justify-center rounded-full bg-[#17151c] text-white"><ArrowRight class="size-5 -rotate-45" /></span></div><div class="mt-14 grid gap-4 md:grid-cols-2"><div class="rounded-2xl border border-[#ebe7ee] bg-[#fbfafb] p-6 sm:p-8"><div class="flex items-center gap-3"><span class="flex size-10 items-center justify-center rounded-xl bg-[#f9e3e8] text-[#f04b67]"><ShieldCheck class="size-5" /></span><h3 class="text-lg font-semibold tracking-[-0.03em]">Clear boundaries, shared trust.</h3></div><p class="mt-6 max-w-[400px] text-sm leading-6 text-[#756e79]">Role-aware access and company structure give admins confidence without adding friction for the people doing the work.</p></div><div class="rounded-2xl bg-[#eee9fb] p-6 sm:p-8"><div class="flex items-center gap-3"><span class="flex size-10 items-center justify-center rounded-xl bg-white text-[#6954d8]"><Zap class="size-5" /></span><h3 class="text-lg font-semibold tracking-[-0.03em]">Less setup. More momentum.</h3></div><p class="mt-6 max-w-[400px] text-sm leading-6 text-[#655b76]">Flexible boards, useful defaults, and lightweight collaboration help a project get moving before the meeting starts.</p></div></div></div></section>
         </main>
 
-        <footer class="bg-[#17151c] px-5 py-16 text-white sm:px-8 sm:py-20"><div class="mx-auto max-w-[1160px]"><div class="grid gap-12 border-b border-white/10 pb-14 lg:grid-cols-[1.2fr_2fr]"><div><Link :href="route('welcome')" class="flex items-center gap-2.5"><RiraaMark /><span class="text-[18px] font-semibold tracking-[-0.04em]">riraa</span></Link><h2 class="mt-8 max-w-[340px] text-3xl font-semibold leading-tight tracking-[-0.05em]">Make room for better work.</h2><Button as-child size="lg" class="riraa-cta riraa-cta--light riraa-cta--regular mt-7"><Link :href="primaryUrl">Get started <ArrowRight class="size-4" /></Link></Button></div><div class="grid grid-cols-2 gap-9 sm:grid-cols-3"> <div v-for="group in footerGroups" :key="group.label"><p class="text-xs font-semibold text-white/40">{{ group.label }}</p><ul class="mt-5 space-y-3 text-sm text-white/65"><li v-for="link in group.links" :key="link"><a href="#" class="transition hover:text-white">{{ link }}</a></li></ul></div></div></div><div class="flex flex-col justify-between gap-4 pt-6 text-xs text-white/40 sm:flex-row"><span>© {{ new Date().getFullYear() }} Riraa. All rights reserved.</span><span>Focused project management for modern teams.</span></div></div></footer>
+        <footer class="bg-[#17151c] px-5 py-16 text-white sm:px-8 sm:py-20"><div class="mx-auto max-w-[1160px]"><div class="grid gap-12 border-b border-white/10 pb-14 lg:grid-cols-[1.2fr_2fr]"><div><Link :href="welcome.url()" class="flex items-center gap-2.5"><RiraaMark /><span class="text-[18px] font-semibold tracking-[-0.04em]">riraa</span></Link><h2 class="mt-8 max-w-[340px] text-3xl font-semibold leading-tight tracking-[-0.05em]">Make room for better work.</h2><Button as-child size="lg" class="riraa-cta riraa-cta--light riraa-cta--regular mt-7"><Link :href="primaryUrl">Get started <ArrowRight class="size-4" /></Link></Button></div><div class="grid grid-cols-2 gap-9 sm:grid-cols-3"> <div v-for="group in footerGroups" :key="group.label"><p class="text-xs font-semibold text-white/40">{{ group.label }}</p><ul class="mt-5 space-y-3 text-sm text-white/65"><li v-for="link in group.links" :key="link"><a href="#" class="transition hover:text-white">{{ link }}</a></li></ul></div></div></div><div class="flex flex-col justify-between gap-4 pt-6 text-xs text-white/40 sm:flex-row"><span>© {{ new Date().getFullYear() }} Riraa. All rights reserved.</span><span>Focused project management for modern teams.</span></div></div></footer>
     </div>
 </template>
 
