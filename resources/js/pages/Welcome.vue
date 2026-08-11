@@ -100,7 +100,7 @@ const footerGroups = [
                     <Link v-if="!user" :href="route('login')" class="hidden rounded-full px-3.5 py-2 text-[13px] font-medium text-[#5f5966] transition hover:bg-[#f6f3f7] hover:text-[#17151c] sm:inline-flex">
                         Log in
                     </Link>
-                    <Button as-child size="sm" class="h-9 rounded-full bg-[#17151c] px-4 text-[13px] shadow-none hover:bg-[#302b35]">
+                    <Button as-child size="sm" class="riraa-cta riraa-cta--ink riraa-cta--compact">
                         <Link :href="primaryUrl">{{ user ? 'Dashboard' : 'Get started' }}</Link>
                     </Button>
                 </div>
@@ -138,10 +138,10 @@ const footerGroups = [
                             Riraa gives your team one clear place to plan projects, share context, and turn good ideas into finished work.
                         </p>
                         <div class="mt-8 flex flex-wrap justify-center gap-3">
-                            <Button as-child size="lg" class="h-12 rounded-full bg-[#f04b67] px-7 text-sm shadow-[0_12px_24px_rgba(240,75,103,0.2)] hover:bg-[#db3856]">
+                            <Button as-child size="lg" class="riraa-cta riraa-cta--brand riraa-cta--large">
                                 <Link :href="primaryUrl">{{ primaryLabel }} <ArrowRight class="size-4" /></Link>
                             </Button>
-                            <a href="#workflow" class="inline-flex h-12 items-center gap-2 rounded-full border border-[#d8d1dc] px-6 text-sm font-medium text-[#35303a] transition hover:border-[#aaa0b0] hover:bg-white">
+                            <a href="#workflow" class="riraa-cta riraa-cta--outline riraa-cta--large">
                                 <Play class="size-3.5 fill-current" /> See how it works
                             </a>
                         </div>
@@ -191,7 +191,7 @@ const footerGroups = [
                         <h2 class="mt-5 max-w-[490px] text-4xl font-semibold leading-[1.02] tracking-[-0.065em] sm:text-6xl">AI that keeps your team moving together.</h2>
                         <p class="mt-6 max-w-[440px] text-base leading-7 text-[#68616e]">A clear place for the plan. A quick place for the update. A thoughtful place for the decisions that keep a project moving.</p>
                         <div class="mt-8 space-y-4"><div class="flex items-start gap-3"><span class="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-[#f9e3e8] text-[#f04b67]"><Check class="size-3.5" /></span><span class="text-sm leading-6 text-[#4e4852]">Bring company context and daily work into one view.</span></div><div class="flex items-start gap-3"><span class="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-[#e1f4f1] text-[#168e82]"><Check class="size-3.5" /></span><span class="text-sm leading-6 text-[#4e4852]">Make ownership, status, and next steps obvious.</span></div></div>
-                        <Button as-child variant="outline" class="mt-9 h-10 rounded-full border-[#cfc6d2] bg-white px-5 text-sm shadow-none"><Link :href="primaryUrl">Explore Riraa <ArrowRight class="size-4" /></Link></Button>
+                        <Button as-child variant="outline" class="riraa-cta riraa-cta--outline riraa-cta--regular mt-9"><Link :href="primaryUrl">Explore Riraa <ArrowRight class="size-4" /></Link></Button>
                     </div>
                     <div class="riraa-ai-card">
                         <div class="riraa-ai-toolbar"><div class="flex items-center gap-2"><span class="flex size-7 items-center justify-center rounded-lg bg-[#f04b67] text-white"><Sparkles class="size-3.5" /></span><span class="text-xs font-semibold text-[#49414c]">Riraa assistant</span></div><span class="rounded-full bg-[#e8f5f2] px-2.5 py-1 text-[9px] font-semibold text-[#168e82]">Ready to help</span></div>
@@ -216,12 +216,12 @@ const footerGroups = [
                 <div class="mx-auto max-w-[1160px]"><div class="max-w-[570px]"><p class="riraa-kicker text-[#6954d8]">ALL THE IMPORTANT PIECES</p><h2 class="mt-5 text-4xl font-semibold leading-[1.02] tracking-[-0.06em] sm:text-6xl">Your team just got bigger.</h2><p class="mt-6 text-base leading-7 text-[#68616e]">Invite the right people, give them the right context, and let everyone do their best work.</p></div><div class="mt-14 grid gap-4 md:grid-cols-3"> <article v-for="capability in capabilities" :key="capability.title" class="riraa-capability-card group"><span class="flex size-11 items-center justify-center rounded-2xl" :class="capability.color === 'violet' ? 'bg-[#eee9fb] text-[#6954d8]' : capability.color === 'orange' ? 'bg-[#fff0db] text-[#cb722a]' : 'bg-[#e1f4f1] text-[#168e82]'"><component :is="capability.icon" class="size-5" /></span><p class="mt-9 text-[10px] font-semibold tracking-[0.16em] text-[#938b96]">{{ capability.eyebrow }}</p><h3 class="mt-3 text-xl font-semibold leading-tight tracking-[-0.04em]">{{ capability.title }}</h3><p class="mt-3 text-sm leading-6 text-[#756e79]">{{ capability.body }}</p><a :href="capability.color === 'violet' ? '#product' : '#workflow'" class="mt-8 inline-flex items-center gap-2 text-xs font-semibold text-[#4c4551]">Learn more <ArrowRight class="size-3.5 transition group-hover:translate-x-1" /></a></article></div></div>
             </section>
 
-            <section id="pricing" class="border-y border-[#ebe7ee] bg-[#faf8fa] px-5 py-20 sm:px-8 sm:py-24"><div class="mx-auto flex max-w-[1160px] flex-col justify-between gap-8 md:flex-row md:items-center"><div><p class="riraa-kicker text-[#168e82]">GET STARTED EASILY</p><h2 class="mt-4 text-3xl font-semibold tracking-[-0.05em] sm:text-4xl">A clearer day is a few clicks away.</h2><p class="mt-3 max-w-[500px] text-sm leading-6 text-[#756e79]">Start with one workspace. Add your team when you’re ready. Riraa grows with the work.</p></div><div class="flex flex-wrap gap-3"><Button as-child size="lg" class="h-11 rounded-full bg-[#17151c] px-6 shadow-none hover:bg-[#302b35]"><Link :href="primaryUrl">{{ primaryLabel }} <ArrowRight class="size-4" /></Link></Button><Button v-if="!user" as-child variant="outline" size="lg" class="h-11 rounded-full border-[#cfc6d2] bg-white px-6 shadow-none"><Link :href="route('login')">Sign in</Link></Button></div></div></section>
+            <section id="pricing" class="border-y border-[#ebe7ee] bg-[#faf8fa] px-5 py-20 sm:px-8 sm:py-24"><div class="mx-auto flex max-w-[1160px] flex-col justify-between gap-8 md:flex-row md:items-center"><div><p class="riraa-kicker text-[#168e82]">GET STARTED EASILY</p><h2 class="mt-4 text-3xl font-semibold tracking-[-0.05em] sm:text-4xl">A clearer day is a few clicks away.</h2><p class="mt-3 max-w-[500px] text-sm leading-6 text-[#756e79]">Start with one workspace. Add your team when you’re ready. Riraa grows with the work.</p></div><div class="flex flex-wrap gap-3"><Button as-child size="lg" class="riraa-cta riraa-cta--ink riraa-cta--regular"><Link :href="primaryUrl">{{ primaryLabel }} <ArrowRight class="size-4" /></Link></Button><Button v-if="!user" as-child variant="outline" size="lg" class="riraa-cta riraa-cta--outline riraa-cta--regular"><Link :href="route('login')">Sign in</Link></Button></div></div></section>
 
             <section class="bg-white px-5 py-24 sm:px-8 sm:py-32"><div class="mx-auto max-w-[1160px]"><div class="flex flex-col justify-between gap-7 md:flex-row md:items-end"><div><p class="riraa-kicker text-[#f04b67]">BUILT FOR THE WAY YOU WORK</p><h2 class="mt-4 max-w-[610px] text-4xl font-semibold leading-[1.02] tracking-[-0.06em] sm:text-6xl">Simple enough to start. Strong enough to stay.</h2></div><span class="flex size-12 items-center justify-center rounded-full bg-[#17151c] text-white"><ArrowRight class="size-5 -rotate-45" /></span></div><div class="mt-14 grid gap-4 md:grid-cols-2"><div class="rounded-2xl border border-[#ebe7ee] bg-[#fbfafb] p-6 sm:p-8"><div class="flex items-center gap-3"><span class="flex size-10 items-center justify-center rounded-xl bg-[#f9e3e8] text-[#f04b67]"><ShieldCheck class="size-5" /></span><h3 class="text-lg font-semibold tracking-[-0.03em]">Clear boundaries, shared trust.</h3></div><p class="mt-6 max-w-[400px] text-sm leading-6 text-[#756e79]">Role-aware access and company structure give admins confidence without adding friction for the people doing the work.</p></div><div class="rounded-2xl bg-[#eee9fb] p-6 sm:p-8"><div class="flex items-center gap-3"><span class="flex size-10 items-center justify-center rounded-xl bg-white text-[#6954d8]"><Zap class="size-5" /></span><h3 class="text-lg font-semibold tracking-[-0.03em]">Less setup. More momentum.</h3></div><p class="mt-6 max-w-[400px] text-sm leading-6 text-[#655b76]">Flexible boards, useful defaults, and lightweight collaboration help a project get moving before the meeting starts.</p></div></div></div></section>
         </main>
 
-        <footer class="bg-[#17151c] px-5 py-16 text-white sm:px-8 sm:py-20"><div class="mx-auto max-w-[1160px]"><div class="grid gap-12 border-b border-white/10 pb-14 lg:grid-cols-[1.2fr_2fr]"><div><Link :href="route('welcome')" class="flex items-center gap-2.5"><RiraaMark /><span class="text-[18px] font-semibold tracking-[-0.04em]">riraa</span></Link><h2 class="mt-8 max-w-[340px] text-3xl font-semibold leading-tight tracking-[-0.05em]">Make room for better work.</h2><Button as-child size="lg" class="mt-7 h-11 rounded-full bg-white px-6 text-[#17151c] shadow-none hover:bg-[#f5eef3]"><Link :href="primaryUrl">Get started <ArrowRight class="size-4" /></Link></Button></div><div class="grid grid-cols-2 gap-9 sm:grid-cols-3"> <div v-for="group in footerGroups" :key="group.label"><p class="text-xs font-semibold text-white/40">{{ group.label }}</p><ul class="mt-5 space-y-3 text-sm text-white/65"><li v-for="link in group.links" :key="link"><a href="#" class="transition hover:text-white">{{ link }}</a></li></ul></div></div></div><div class="flex flex-col justify-between gap-4 pt-6 text-xs text-white/40 sm:flex-row"><span>© {{ new Date().getFullYear() }} Riraa. All rights reserved.</span><span>Focused project management for modern teams.</span></div></div></footer>
+        <footer class="bg-[#17151c] px-5 py-16 text-white sm:px-8 sm:py-20"><div class="mx-auto max-w-[1160px]"><div class="grid gap-12 border-b border-white/10 pb-14 lg:grid-cols-[1.2fr_2fr]"><div><Link :href="route('welcome')" class="flex items-center gap-2.5"><RiraaMark /><span class="text-[18px] font-semibold tracking-[-0.04em]">riraa</span></Link><h2 class="mt-8 max-w-[340px] text-3xl font-semibold leading-tight tracking-[-0.05em]">Make room for better work.</h2><Button as-child size="lg" class="riraa-cta riraa-cta--light riraa-cta--regular mt-7"><Link :href="primaryUrl">Get started <ArrowRight class="size-4" /></Link></Button></div><div class="grid grid-cols-2 gap-9 sm:grid-cols-3"> <div v-for="group in footerGroups" :key="group.label"><p class="text-xs font-semibold text-white/40">{{ group.label }}</p><ul class="mt-5 space-y-3 text-sm text-white/65"><li v-for="link in group.links" :key="link"><a href="#" class="transition hover:text-white">{{ link }}</a></li></ul></div></div></div><div class="flex flex-col justify-between gap-4 pt-6 text-xs text-white/40 sm:flex-row"><span>© {{ new Date().getFullYear() }} Riraa. All rights reserved.</span><span>Focused project management for modern teams.</span></div></div></footer>
     </div>
 </template>
 
@@ -233,6 +233,120 @@ const footerGroups = [
 .riraa-nav :deep(a),
 .riraa-home a {
     text-decoration: none;
+}
+
+.riraa-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-weight: 650;
+    letter-spacing: -0.015em;
+    line-height: 1;
+    box-shadow: 0 1px 2px rgba(39, 26, 44, 0.08);
+    transition:
+        background-color 180ms ease,
+        border-color 180ms ease,
+        color 180ms ease,
+        box-shadow 180ms ease,
+        transform 180ms ease;
+}
+
+.riraa-cta--compact {
+    min-height: 2.25rem;
+    padding-inline: 1rem;
+    font-size: 0.8125rem;
+}
+
+.riraa-cta--regular {
+    min-height: 2.75rem;
+    padding-inline: 1.5rem;
+    font-size: 0.875rem;
+}
+
+.riraa-cta--large {
+    min-height: 3rem;
+    padding-inline: 1.75rem;
+    font-size: 0.9375rem;
+}
+
+.riraa-cta--ink {
+    border-color: #17151c;
+    background: #17151c;
+    color: #fff;
+    box-shadow: 0 7px 18px rgba(23, 21, 28, 0.16);
+}
+
+.riraa-cta--ink:hover {
+    border-color: #302b35;
+    background: #302b35;
+    color: #fff;
+    box-shadow: 0 10px 24px rgba(23, 21, 28, 0.2);
+}
+
+.riraa-cta--brand {
+    border-color: #ef4765;
+    background: #f04b67;
+    color: #fff;
+    box-shadow: 0 10px 24px rgba(240, 75, 103, 0.24);
+}
+
+.riraa-cta--brand:hover {
+    border-color: #dc3856;
+    background: #dc3856;
+    color: #fff;
+    box-shadow: 0 13px 28px rgba(220, 56, 86, 0.28);
+}
+
+.riraa-cta--outline {
+    border-color: #cfc6d2;
+    background: #fff;
+    color: #2f2a33;
+    box-shadow: 0 2px 8px rgba(50, 37, 55, 0.06);
+}
+
+.riraa-cta--outline:hover {
+    border-color: #a99ead;
+    background: #fbf8fb;
+    color: #17151c;
+    box-shadow: 0 7px 18px rgba(50, 37, 55, 0.1);
+}
+
+.riraa-cta--light {
+    border-color: #fff;
+    background: #fff;
+    color: #17151c;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+}
+
+.riraa-cta--light:hover {
+    border-color: #f5eef3;
+    background: #f5eef3;
+    color: #17151c;
+    box-shadow: 0 11px 25px rgba(0, 0, 0, 0.22);
+}
+
+.riraa-cta:hover {
+    transform: translateY(-1px);
+}
+
+.riraa-cta:active {
+    transform: translateY(0) scale(0.98);
+}
+
+.riraa-cta:focus-visible {
+    outline: 3px solid rgba(105, 84, 216, 0.28);
+    outline-offset: 3px;
+}
+
+.riraa-cta :deep(svg) {
+    transition: transform 180ms ease;
+}
+
+.riraa-cta:hover :deep(svg) {
+    transform: translateX(2px);
 }
 
 .riraa-kicker {
@@ -434,6 +548,8 @@ const footerGroups = [
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .riraa-capability-card { transition: none; }
+    .riraa-capability-card,
+    .riraa-cta,
+    .riraa-cta :deep(svg) { transition: none; }
 }
 </style>
